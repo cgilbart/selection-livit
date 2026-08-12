@@ -611,7 +611,7 @@ td{padding:13px 16px;font-size:12px}
     </div>
 
     <button class="save-btn" onclick="guardar()">Guardar cambios</button>
-    <button class="reinvitar-btn" onclick="toast_msg('Función disponible próximamente')">📧 Reenviar invitación</button>
+    <button class="reinvitar-btn" onclick="enviarInvitacion()">📧 Reenviar invitación</button>
 
     <hr class="divider">
 
@@ -1192,13 +1192,33 @@ async function crearCandidato(){
   const tel=document.getElementById('n-tel').value.trim();
   const vac=document.getElementById('n-vacante').value||null;
   if(!nombre||!email){toast_msg('Nombre y email son obligatorios');return}
-  const{error}=await db.from('candidatos').insert({nombre,email,telefono:tel||null,vacante_id:vac,estado:'preseleccionado',magic_token:crypto.randomUUID()});
+  const token=crypto.randomUUID();
+  const{data:nuevo,error}=await db.from('candidatos').insert({nombre,email,telefono:tel||null,vacante_id:vac,estado:'preseleccionado',magic_token:token}).select().single();
   if(error){toast_msg(error.message.includes('unique')?'Este email ya existe':'Error al crear candidato');return}
-  toast_msg('Candidato creado');
+  // Enviar invitación automáticamente
+  toast_msg('Candidato creado — enviando invitación...');
+  await enviarInvitacion(nuevo.id);
   closeModal('modal-nuevo');
   ['n-nombre','n-email','n-tel'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('n-vacante').value='';
   await loadCandidatos();
+}
+
+async function enviarInvitacion(candidatoId){
+  const id=candidatoId||actual?.id;
+  if(!id)return;
+  try{
+    const res=await fetch(`https://tdotlurmytvcdgmlmecc.supabase.co/functions/v1/enviar-invitacion`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer sb_publishable_QH5TpVUMwoqtcEIcTPo-Qg_UF6LnZYi'},
+      body:JSON.stringify({candidato_id:id})
+    });
+    const data=await res.json();
+    if(data.success)toast_msg('Invitación enviada correctamente');
+    else toast_msg('Error al enviar la invitación: '+data.error);
+  }catch(e){
+    toast_msg('Error al enviar la invitación');
+  }
 }
 
 async function crearVacante(){
