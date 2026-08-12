@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Livit — Selección</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#161412;--bg2:#1C1917;--surface:#2B2724;--surface2:#33302C;
+  --border:rgba(248,238,231,0.08);--border2:rgba(248,238,231,0.14);
+  --cream:#F8EEE7;--warm:#504946;
+  --text:#F8EEE7;--muted:rgba(248,238,231,0.42);--muted2:rgba(248,238,231,0.25);
+  --pink:#E6007E;--pink2:#FF4DA6;--pink-grad:linear-gradient(135deg,var(--pink),var(--pink2));
+  --green:#4AC882;--red:#FF5252;--blue:#5AAAE8;--amber:#FFCA28;--purple:#A78BFA;
+  --font:'Manrope','Inter',-apple-system,sans-serif;
+  --serif:'Instrument Serif',Georgia,serif;
+  --radius:14px;--ease2:cubic-bezier(.32,.72,.24,1);
+  --glow:0 4px 16px color-mix(in srgb,var(--pink) 22%,transparent);
+  --glass:rgba(255,255,255,.055);--specular:inset 0 1px 0 rgba(255,255,255,.09);
+}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;min-height:100vh;overflow-x:hidden}
+
+/* ORBS */
+.bg-ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(60px);will-change:transform}
+.bg-orb1{top:-25vh;right:-15vw;width:60vw;height:60vw;background:radial-gradient(circle,color-mix(in srgb,var(--pink) 13%,transparent),transparent 65%);animation:orbDrift 44s ease-in-out infinite alternate}
+.bg-orb2{bottom:-30vh;left:-18vw;width:65vw;height:65vw;background:radial-gradient(circle,color-mix(in srgb,#FF8A4C 8%,transparent),transparent 65%);animation:orbDrift 44s ease-in-out -22s infinite alternate-reverse}
+@keyframes orbDrift{from{transform:translate(0,0) scale(1)}to{transform:translate(-6vw,4vh) scale(1.12)}}
+
+/* HEADER */
+header{
+  background:rgba(22,20,18,.82);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border-bottom:1px solid var(--border);padding:0 28px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-name{font-size:13px;font-weight:800;letter-spacing:-.2px;color:var(--cream)}
+.logo-div{width:1px;height:12px;background:var(--cream);opacity:.15}
+.logo-sub{font-size:10px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--cream);opacity:.35}
+.live-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--pink);display:flex;align-items:center;gap:5px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px rgba(230,0,126,.8);animation:pulse 2.4s ease infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.own-av{width:32px;height:32px;border-radius:8px;background:var(--pink);border:none;box-shadow:0 0 7px rgba(230,0,126,.7);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--cream);cursor:pointer;flex-shrink:0}
+
+/* LAYOUT */
+.app{display:flex;height:calc(100vh - 64px);position:relative;z-index:1}
+
+/* SIDEBAR */
+.sidebar{
+  width:200px;flex-shrink:0;
+  background:rgba(28,25,23,.6);backdrop-filter:blur(12px);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:16px 10px;
+  overflow-y:auto;
+}
+.nav-section-label{font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted2);padding:8px 10px 6px}
+.nav-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;border-radius:10px;
+  font-size:12px;font-weight:600;color:var(--muted);
+  cursor:pointer;transition:all .15s;margin-bottom:2px;
+  border:none;background:none;width:100%;text-align:left;
+}
+.nav-item:hover{background:var(--glass);color:rgba(248,238,231,.7)}
+.nav-item.active{background:rgba(230,0,126,.12);color:var(--pink);border:1px solid rgba(230,0,126,.2)}
+.nav-item svg{width:14px;height:14px;flex-shrink:0;opacity:.7}
+.nav-item.active svg{opacity:1}
+.nav-badge{margin-left:auto;background:rgba(230,0,126,.18);color:var(--pink);font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:28px 32px}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
+.page-title{font-size:22px;font-weight:800;letter-spacing:-.6px;color:var(--cream)}
+.page-subtitle{font-size:12px;color:var(--muted);margin-top:4px;font-weight:500}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:none;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.03em;transition:all .18s var(--ease2);white-space:nowrap}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#FF2E9A,#E6007E 62%);color:#fff;box-shadow:0 4px 14px rgba(230,0,126,.28),inset 0 1px 0 rgba(255,255,255,.18)}
+.btn-primary:hover{box-shadow:0 8px 22px rgba(230,0,126,.4);filter:brightness(1.05)}
+.btn-ghost{background:var(--glass);color:var(--muted);border:1px solid var(--border2);box-shadow:var(--specular)}
+.btn-ghost:hover{background:rgba(255,255,255,.09);color:rgba(248,238,231,.7)}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(248,238,231,.08),transparent)}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px}
+.stat-value{font-size:30px;font-weight:800;letter-spacing:-1.5px;color:var(--cream);line-height:1}
+.stat-accent{color:var(--pink)}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:6px;font-weight:500}
+
+/* FILTERS */
+.filters-bar{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.3;pointer-events:none}
+.search-input{
+  width:100%;padding:9px 12px 9px 32px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:10px;
+  font-family:var(--font);font-size:12px;font-weight:500;color:var(--cream);
+  outline:none;transition:border-color .15s;
+}
+.search-input::placeholder{color:var(--muted2)}
+.search-input:focus{border-color:rgba(230,0,126,.4)}
+.filter-select{
+  padding:9px 12px;background:var(--surface);border:1px solid var(--border2);
+  border-radius:10px;font-family:var(--font);font-size:12px;font-weight:600;
+  color:var(--muted);outline:none;cursor:pointer;
+}
+.filter-select:focus{border-color:rgba(230,0,126,.4)}
+
+/* TABLE */
+.table-wrap{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+}
+table{width:100%;border-collapse:collapse}
+thead th{
+  padding:11px 16px;text-align:left;
+  font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+  color:var(--muted2);background:rgba(255,255,255,.02);
+  border-bottom:1px solid var(--border);
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+td{padding:13px 16px;font-size:12px}
+.td-name{font-weight:700;color:var(--cream);font-size:13px}
+.td-email{color:var(--muted);font-size:11px;margin-top:2px;font-weight:500}
+.td-date{color:var(--muted2);font-size:11px;font-weight:500}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.3px}
+.badge-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.b-preseleccionado{background:rgba(90,170,232,.12);color:var(--blue);border:1px solid rgba(90,170,232,.2)}
+.b-preseleccionado .badge-dot{background:var(--blue)}
+.b-perfil_incompleto{background:rgba(255,202,40,.1);color:var(--amber);border:1px solid rgba(255,202,40,.2)}
+.b-perfil_incompleto .badge-dot{background:var(--amber)}
+.b-tests_completados{background:rgba(74,200,130,.1);color:var(--green);border:1px solid rgba(74,200,130,.2)}
+.b-tests_completados .badge-dot{background:var(--green)}
+.b-prueba_asignada{background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.2)}
+.b-prueba_asignada .badge-dot{background:var(--purple)}
+.b-prueba_entregada{background:rgba(167,139,250,.15);color:var(--purple);border:1px solid rgba(167,139,250,.3)}
+.b-prueba_entregada .badge-dot{background:var(--purple)}
+.b-entrevista_tecnica{background:rgba(230,0,126,.1);color:var(--pink);border:1px solid rgba(230,0,126,.2)}
+.b-entrevista_tecnica .badge-dot{background:var(--pink)}
+.b-oferta{background:rgba(74,200,130,.15);color:var(--green);border:1px solid rgba(74,200,130,.3)}
+.b-oferta .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
+.b-descartado{background:rgba(255,82,82,.08);color:var(--red);border:1px solid rgba(255,82,82,.2)}
+.b-descartado .badge-dot{background:var(--red)}
+
+/* DISC mini */
+.disc-mini{display:flex;gap:4px;align-items:center}
+.disc-chip{font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px;background:rgba(230,0,126,.12);color:var(--pink)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,8,6,.7);backdrop-filter:blur(4px);z-index:200;align-items:flex-start;justify-content:flex-end}
+.modal-overlay.open{display:flex}
+.modal-panel{
+  width:460px;height:100vh;
+  background:var(--bg2);border-left:1px solid var(--border2);
+  overflow-y:auto;padding:28px;
+  box-shadow:-20px 0 60px rgba(0,0,0,.4);
+}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.modal-name{font-size:18px;font-weight:800;letter-spacing:-.4px;color:var(--cream)}
+.modal-role{font-size:11px;color:var(--muted);margin-top:3px;font-weight:600}
+.modal-close{width:30px;height:30px;border-radius:8px;border:1px solid var(--border2);background:var(--glass);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);flex-shrink:0;transition:all .15s}
+.modal-close:hover{background:rgba(255,255,255,.08);color:var(--cream)}
+
+.field-block{margin-bottom:18px}
+.field-lbl{font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px}
+.field-val{font-size:13px;color:var(--muted);font-weight:500;line-height:1.5}
+.field-link{color:var(--pink);text-decoration:none;font-size:12px;font-weight:600}
+.field-link:hover{opacity:.8}
+
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+
+/* DISC bars in modal */
+.disc-bars{display:flex;flex-direction:column;gap:10px}
+.disc-row{display:flex;align-items:center;gap:10px}
+.disc-letter{font-size:11px;font-weight:800;width:14px;color:var(--muted);letter-spacing:.5px}
+.disc-bar-bg{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.disc-bar-fill{height:100%;border-radius:3px;background:var(--pink-grad);transition:width .6s var(--ease2)}
+.disc-score{font-size:11px;color:var(--muted2);width:28px;text-align:right;font-weight:600}
+.disc-perfil{font-size:12px;font-weight:700;color:var(--pink);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+
+/* FORM ELEMENTS in modal */
+.modal-select,.modal-textarea{
+  width:100%;padding:9px 12px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:10px;
+  font-family:var(--font);font-size:12px;font-weight:600;color:var(--cream);
+  outline:none;transition:border-color .15s;margin-top:6px;
+}
+.modal-select:focus,.modal-textarea:focus{border-color:rgba(230,0,126,.4)}
+.modal-textarea{resize:vertical;min-height:80px;line-height:1.5}
+.save-btn{
+  width:100%;padding:11px;
+  background:linear-gradient(135deg,#FF2E9A,#E6007E 62%);color:#fff;
+  border:none;border-radius:10px;font-family:var(--font);font-size:12px;font-weight:800;
+  cursor:pointer;margin-top:8px;letter-spacing:.3px;
+  box-shadow:0 4px 14px rgba(230,0,126,.28);transition:all .18s;
+}
+.save-btn:hover{filter:brightness(1.05);box-shadow:0 8px 22px rgba(230,0,126,.4)}
+.reinvitar-btn{
+  width:100%;padding:9px;
+  background:var(--glass);color:var(--muted);
+  border:1px solid var(--border2);border-radius:10px;
+  font-family:var(--font);font-size:11px;font-weight:700;
+  cursor:pointer;margin-top:8px;letter-spacing:.3px;transition:all .15s;
+}
+.reinvitar-btn:hover{background:rgba(255,255,255,.08);color:var(--cream)}
+
+/* HISTORIAL */
+.historial-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--muted)}
+.historial-item:last-child{border-bottom:none}
+.historial-fecha{color:var(--muted2);font-size:10px;margin-top:2px;font-weight:500}
+
+/* EMPTY / LOADING */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted2)}
+.empty-icon{font-size:32px;margin-bottom:12px;opacity:.4}
+.empty-state p{font-size:13px;font-weight:600;margin-top:4px}
+.loading{text-align:center;padding:48px;color:var(--muted2);font-size:13px;font-weight:600}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:28px;right:28px;
+  background:var(--surface2);border:1px solid var(--border2);color:var(--cream);
+  padding:11px 18px;border-radius:10px;font-size:12px;font-weight:700;
+  z-index:999;opacity:0;transition:opacity .2s,transform .2s;
+  transform:translateY(8px);pointer-events:none;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* VACANTE TAG */
+.vac-tag{display:inline-flex;align-items:center;padding:3px 8px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.3px}
+
+/* NUEVO CANDIDATO FORM */
+.form-field{margin-bottom:16px}
+.form-lbl{font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;display:block}
+.form-input{
+  width:100%;padding:9px 12px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:10px;
+  font-family:var(--font);font-size:13px;font-weight:500;color:var(--cream);
+  outline:none;transition:border-color .15s;
+}
+.form-input::placeholder{color:var(--muted2)}
+.form-input:focus{border-color:rgba(230,0,126,.4)}
+
+/* PRUEBA SECTION */
+.prueba-action{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 12px;background:rgba(255,255,255,.03);
+  border:1px solid var(--border);border-radius:8px;margin-bottom:6px;
+}
+.prueba-action-label{font-size:11px;font-weight:600;color:var(--muted)}
+
+/* CV UPLOAD */
+.cv-drop{
+  border:1.5px dashed var(--border2);border-radius:10px;
+  padding:18px;text-align:center;cursor:pointer;
+  transition:all .18s;background:rgba(255,255,255,.02);
+  margin-top:8px;
+}
+.cv-drop:hover{border-color:rgba(230,0,126,.4);background:rgba(230,0,126,.04)}
+.cv-drop.dragging{border-color:var(--pink);background:rgba(230,0,126,.08)}
+.cv-drop-icon{font-size:20px;margin-bottom:6px;opacity:.5}
+.cv-drop-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.2px}
+.cv-drop-sub{font-size:10px;color:var(--muted2);margin-top:3px;font-weight:500}
+.cv-uploading{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--muted);padding:8px 0}
+.cv-uploading-bar{flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.cv-uploading-fill{height:100%;background:var(--pink-grad);border-radius:2px;animation:upload-progress 1.8s ease-in-out infinite}
+@keyframes upload-progress{0%{width:0%}60%{width:85%}100%{width:95%}}
+.cv-exists{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 12px;background:rgba(74,200,130,.06);
+  border:1px solid rgba(74,200,130,.2);border-radius:8px;margin-top:8px;
+}
+.cv-exists-name{font-size:11px;font-weight:700;color:var(--green);display:flex;align-items:center;gap:6px}
+.cv-exists-actions{display:flex;gap:6px}
+.cv-action-btn{font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;border:none;cursor:pointer;font-family:var(--font);transition:all .15s}
+.cv-btn-dl{background:rgba(74,200,130,.15);color:var(--green)}
+.cv-btn-dl:hover{background:rgba(74,200,130,.25)}
+.cv-btn-rm{background:rgba(255,82,82,.1);color:var(--red)}
+.cv-btn-rm:hover{background:rgba(255,82,82,.2)}
+
+@media(max-width:900px){
+  .sidebar{width:56px;padding:12px 6px}
+  .nav-item span,.nav-section-label,.nav-badge{display:none}
+  .main{padding:20px 16px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .modal-panel{width:100%}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-ambient">
+  <div class="bg-orb bg-orb1"></div>
+  <div class="bg-orb bg-orb2"></div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-name" style="display:flex;align-items:center;color:var(--cream)"><svg height="16" viewBox="0 0 2000 889" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+<path d="M510.352 0H304.334V197.401H510.352V0Z" fill="currentColor"/>
+<path d="M203.377 0H0V888.249H203.377V0Z" fill="currentColor"/>
+<path d="M509.022 296.661H305.625V888.268H509.022V296.661Z" fill="currentColor"/>
+<path d="M1547.11 296.661H1343.74V888.268H1547.11V296.661Z" fill="currentColor"/>
+<path d="M1852.78 493.465H2000V296.661H1852.78V0H1649.4V888.249H1852.78V493.465Z" fill="currentColor"/>
+<path d="M1152.91 592.166L1270.04 296.661H1050.53L931.276 592.166H1152.91Z" fill="currentColor"/>
+<path d="M800.922 296.661H581.409L816.517 888.249H1040.25L800.922 296.661Z" fill="currentColor"/>
+<path d="M1548.44 0H1342.41V197.401H1548.44V0Z" fill="currentColor"/>
+</svg></div>
+    <div class="logo-div"></div>
+    <div class="logo-sub">Selección</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="live-lbl"><div class="live-dot"></div><span id="live-count">0 candidatos activos</span></div>
+    <div class="hdr-r">
+      <div class="own-av" onclick="adminLogout()" title="Cerrar sesión">L</div>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section-label">Principal</div>
+    <button class="nav-item active" onclick="showView('candidatos')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Candidatos</span>
+      <span class="nav-badge" id="badge-candidatos">0</span>
+    </button>
+    <button class="nav-item" onclick="showView('vacantes')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      <span>Vacantes</span>
+      <span class="nav-badge" id="badge-vacantes">0</span>
+    </button>
+    <button class="nav-item" onclick="showView('pruebas')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Pruebas técnicas</span>
+      <span class="nav-badge" id="badge-pruebas">0</span>
+    </button>
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="padding:8px 10px;font-size:10px;font-weight:600;color:var(--muted2)">
+        <div style="color:var(--muted);font-weight:700;font-size:11px">Lucía</div>
+        <div style="margin-top:1px">Administrador</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- VISTA CANDIDATOS -->
+    <div id="view-candidatos">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Candidatos</div>
+          <div class="page-subtitle" id="subtitle-count">Cargando...</div>
+        </div>
+        <button class="btn btn-primary" onclick="openNuevoCandidato()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo candidato
+        </button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">En proceso</div>
+          <div class="stat-value stat-accent" id="stat-total">—</div>
+          <div class="stat-sub">candidatos activos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tests DISC</div>
+          <div class="stat-value" id="stat-tests">—</div>
+          <div class="stat-sub">completados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pruebas</div>
+          <div class="stat-value" id="stat-pruebas">—</div>
+          <div class="stat-sub">entregadas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ofertas</div>
+          <div class="stat-value" id="stat-ofertas">—</div>
+          <div class="stat-sub">enviadas</div>
+        </div>
+      </div>
+
+      <div class="filters-bar">
+        <div class="search-wrap">
+          <svg class="search-icon" width="13" height="13" fill="none" stroke="#F8EEE7" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" type="text" placeholder="Buscar candidato..." oninput="filtrar()" id="search-input">
+        </div>
+        <select class="filter-select" id="filter-estado" onchange="filtrar()">
+          <option value="">Todos los estados</option>
+          <option value="preseleccionado">Preseleccionado</option>
+          <option value="perfil_incompleto">Perfil incompleto</option>
+          <option value="tests_completados">Tests completados</option>
+          <option value="prueba_asignada">Prueba asignada</option>
+          <option value="prueba_entregada">Prueba entregada</option>
+          <option value="entrevista_tecnica">Entrevista técnica</option>
+          <option value="oferta">Oferta</option>
+          <option value="descartado">Descartado</option>
+        </select>
+        <select class="filter-select" id="filter-vacante" onchange="filtrar()">
+          <option value="">Todas las vacantes</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Candidato</th>
+              <th>Vacante</th>
+              <th>Estado</th>
+              <th>DISC</th>
+              <th>Entrada</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-candidatos">
+            <tr><td colspan="5" class="loading">Cargando candidatos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VISTA VACANTES -->
+    <div id="view-vacantes" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Vacantes</div>
+          <div class="page-subtitle">Ofertas abiertas y cerradas</div>
+        </div>
+        <button class="btn btn-primary" onclick="openNuevaVacante()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva vacante
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Puesto</th><th>Equipo</th><th>Estado</th><th>Candidatos</th><th>Creada</th></tr>
+          </thead>
+          <tbody id="tabla-vacantes">
+            <tr><td colspan="5" class="loading">Cargando vacantes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VISTA PRUEBAS TÉCNICAS -->
+    <div id="view-pruebas" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Pruebas técnicas</div>
+          <div class="page-subtitle">Biblioteca de pruebas para asignar a candidatos</div>
+        </div>
+        <button class="btn btn-primary" onclick="openNuevaPrueba()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva prueba
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Título</th><th>Vacante</th><th>Archivo</th><th>Asignaciones</th><th>Creada</th></tr>
+          </thead>
+          <tbody id="tabla-pruebas">
+            <tr><td colspan="5" class="loading">Cargando pruebas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL CANDIDATO (panel lateral) -->
+<div class="modal-overlay" id="modal-cand">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div>
+        <div class="modal-name" id="m-nombre">—</div>
+        <div class="modal-role" id="m-vacante-label">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-cand')">✕</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+      <div class="field-block">
+        <div class="field-lbl">Email</div>
+        <div class="field-val" id="m-email">—</div>
+      </div>
+      <div class="field-block">
+        <div class="field-lbl">Teléfono</div>
+        <div class="field-val" id="m-tel">—</div>
+      </div>
+    </div>
+
+    <div class="field-block">
+      <div class="field-lbl">LinkedIn</div>
+      <div id="m-linkedin">—</div>
+    </div>
+
+    <div class="field-block">
+      <div class="field-lbl">Presentación</div>
+      <div class="field-val" id="m-presentacion" style="font-size:12px;line-height:1.6">—</div>
+    </div>
+
+    <div class="field-block">
+      <div class="field-lbl">Currículum</div>
+      <div id="m-cv-exists" style="display:none" class="cv-exists">
+        <div class="cv-exists-name">📄 <span id="m-cv-nombre">CV.pdf</span></div>
+        <div class="cv-exists-actions">
+          <button class="cv-action-btn cv-btn-dl" onclick="descargarCV()">Descargar</button>
+          <button class="cv-action-btn cv-btn-rm" onclick="eliminarCV()">Eliminar</button>
+        </div>
+      </div>
+      <div id="m-cv-upload">
+        <div class="cv-drop" id="cv-drop-zone" onclick="document.getElementById('cv-file-input').click()" ondragover="cvDragOver(event)" ondragleave="cvDragLeave(event)" ondrop="cvDrop(event)">
+          <div class="cv-drop-icon">📎</div>
+          <div class="cv-drop-label">Subir CV del candidato</div>
+          <div class="cv-drop-sub">PDF · Arrastra aquí o haz clic</div>
+        </div>
+        <input type="file" id="cv-file-input" accept=".pdf" style="display:none" onchange="cvSeleccionado(this.files[0])">
+        <div class="cv-uploading" id="cv-uploading" style="display:none">
+          <span>Subiendo...</span>
+          <div class="cv-uploading-bar"><div class="cv-uploading-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="field-block">
+      <div class="field-lbl">Cuestionario conductual</div>
+      <div class="disc-perfil" id="m-disc-perfil">
+        <span style="opacity:.4">Sin completar</span>
+      </div>
+      <div class="disc-bars" id="m-disc-bars"></div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="field-block">
+      <div class="field-lbl">Prueba técnica</div>
+      <div id="m-prueba-asignada" style="display:none">
+        <div class="cv-exists" style="margin-top:0">
+          <div class="cv-exists-name">📋 <span id="m-prueba-nombre">—</span></div>
+          <div class="cv-exists-actions">
+            <button class="cv-action-btn cv-btn-dl" onclick="descargarPrueba()">Ver</button>
+            <button class="cv-action-btn cv-btn-rm" onclick="desasignarPrueba()">Quitar</button>
+          </div>
+        </div>
+        <div id="m-entrega-candidato" style="margin-top:8px;display:none">
+          <div class="prueba-action">
+            <span class="prueba-action-label">📤 Entrega del candidato</span>
+            <a class="field-link" id="m-entrega-link" href="#" target="_blank">Descargar</a>
+          </div>
+        </div>
+      </div>
+      <div id="m-prueba-selector" style="display:none">
+        <select class="modal-select" id="m-prueba-select" style="margin-top:0">
+          <option value="">Selecciona una prueba de la biblioteca...</option>
+        </select>
+        <button class="save-btn" style="margin-top:8px;background:rgba(255,255,255,.06);color:var(--muted);box-shadow:none;border:1px solid var(--border2)" onclick="asignarPrueba()">Asignar prueba</button>
+      </div>
+      <div id="m-prueba-vacia" style="font-size:12px;color:var(--muted2);font-weight:600;margin-top:6px">No asignada</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="field-block">
+      <div class="field-lbl">Estado del proceso</div>
+      <select class="modal-select" id="m-estado">
+        <option value="preseleccionado">Preseleccionado</option>
+        <option value="perfil_incompleto">Perfil incompleto</option>
+        <option value="tests_completados">Tests completados</option>
+        <option value="prueba_asignada">Prueba asignada</option>
+        <option value="prueba_entregada">Prueba entregada</option>
+        <option value="entrevista_tecnica">Entrevista técnica</option>
+        <option value="oferta">Oferta</option>
+        <option value="descartado">Descartado</option>
+      </select>
+    </div>
+
+    <div class="field-block">
+      <div class="field-lbl">Notas internas</div>
+      <textarea class="modal-textarea" id="m-notas" placeholder="Impresiones de la llamada, puntos a explorar en entrevista..."></textarea>
+    </div>
+
+    <button class="save-btn" onclick="guardar()">Guardar cambios</button>
+    <button class="reinvitar-btn" onclick="toast_msg('Función disponible próximamente')">📧 Reenviar invitación</button>
+
+    <hr class="divider">
+
+    <div class="field-block">
+      <div class="field-lbl">Historial de estados</div>
+      <div id="m-historial" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO CANDIDATO -->
+<div class="modal-overlay" id="modal-nuevo">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div class="modal-name">Nuevo candidato</div>
+      <button class="modal-close" onclick="closeModal('modal-nuevo')">✕</button>
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Nombre completo *</label>
+      <input type="text" id="n-nombre" class="form-input" placeholder="Ana García">
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Email *</label>
+      <input type="email" id="n-email" class="form-input" placeholder="ana@email.com">
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Teléfono</label>
+      <input type="text" id="n-tel" class="form-input" placeholder="+34 600 000 000">
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Vacante</label>
+      <select id="n-vacante" class="modal-select" style="margin-top:0">
+        <option value="">Sin asignar</option>
+      </select>
+    </div>
+    <button class="save-btn" onclick="crearCandidato()">Crear candidato</button>
+  </div>
+</div>
+
+<!-- MODAL NUEVA VACANTE -->
+<div class="modal-overlay" id="modal-vacante">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div class="modal-name">Nueva vacante</div>
+      <button class="modal-close" onclick="closeModal('modal-vacante')">✕</button>
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Título del puesto *</label>
+      <input type="text" id="v-titulo" class="form-input" placeholder="Product Designer">
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Equipo</label>
+      <input type="text" id="v-equipo" class="form-input" placeholder="Producto, Tech, Operaciones...">
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Descripción</label>
+      <textarea id="v-desc" class="modal-textarea" placeholder="Descripción del puesto y responsabilidades..."></textarea>
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Perfil DISC ideal</label>
+      <textarea id="v-disc" class="modal-textarea" style="min-height:60px" placeholder="Ej: buscamos perfil SC o IC, con C por encima de 60..."></textarea>
+    </div>
+    <button class="save-btn" onclick="crearVacante()">Crear vacante</button>
+  </div>
+</div>
+
+<!-- MODAL NUEVA PRUEBA TÉCNICA -->
+<div class="modal-overlay" id="modal-prueba-nueva">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div class="modal-name">Nueva prueba técnica</div>
+      <button class="modal-close" onclick="closeModal('modal-prueba-nueva')">✕</button>
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Título *</label>
+      <input type="text" id="p-titulo" class="form-input" placeholder="Prueba de diseño UX">
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Descripción</label>
+      <textarea id="p-desc" class="modal-textarea" placeholder="Instrucciones adicionales o contexto..."></textarea>
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Vacante relacionada</label>
+      <select id="p-vacante" class="modal-select" style="margin-top:0">
+        <option value="">Sin vacante específica</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Archivo PDF *</label>
+      <div class="cv-drop" id="p-drop-zone" onclick="document.getElementById('p-file-input').click()" ondragover="event.preventDefault();this.classList.add('dragging')" ondragleave="this.classList.remove('dragging')" ondrop="pDrop(event)">
+        <div class="cv-drop-icon">📋</div>
+        <div class="cv-drop-label" id="p-drop-label">Subir PDF de la prueba</div>
+        <div class="cv-drop-sub">Arrastra aquí o haz clic</div>
+      </div>
+      <input type="file" id="p-file-input" accept=".pdf" style="display:none" onchange="pSeleccionado(this.files[0])">
+      <div class="cv-uploading" id="p-uploading" style="display:none">
+        <span>Subiendo...</span>
+        <div class="cv-uploading-bar"><div class="cv-uploading-fill"></div></div>
+      </div>
+    </div>
+    <button class="save-btn" id="p-save-btn" onclick="crearPrueba()" style="opacity:.4;pointer-events:none">Guardar prueba</button>
+  </div>
+</div>
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay" style="
+  display:none;position:fixed;inset:0;z-index:999;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+">
+  <div style="width:100%;max-width:380px;padding:32px">
+    <div style="margin-bottom:32px">
+      <svg height="20" viewBox="0 0 2000 889" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M510.352 0H304.334V197.401H510.352V0Z" fill="#E6007E"/>
+        <path d="M203.377 0H0V888.249H203.377V0Z" fill="#E6007E"/>
+        <path d="M509.022 296.661H305.625V888.268H509.022V296.661Z" fill="#E6007E"/>
+        <path d="M1547.11 296.661H1343.74V888.268H1547.11V296.661Z" fill="#E6007E"/>
+        <path d="M1852.78 493.465H2000V296.661H1852.78V0H1649.4V888.249H1852.78V493.465Z" fill="#E6007E"/>
+        <path d="M1152.91 592.166L1270.04 296.661H1050.53L931.276 592.166H1152.91Z" fill="#E6007E"/>
+        <path d="M800.922 296.661H581.409L816.517 888.249H1040.25L800.922 296.661Z" fill="#E6007E"/>
+        <path d="M1548.44 0H1342.41V197.401H1548.44V0Z" fill="#E6007E"/>
+      </svg>
+    </div>
+    <div style="font-size:20px;font-weight:800;color:var(--cream);margin-bottom:4px;letter-spacing:-.3px">Panel de selección</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:28px;font-weight:500">Acceso restringido al equipo de Livit</div>
+    <div style="margin-bottom:14px">
+      <input type="email" id="login-email" placeholder="Email" style="
+        width:100%;padding:10px 12px;
+        background:var(--surface);border:1px solid var(--border2);
+        border-radius:10px;font-family:var(--font);font-size:13px;
+        color:var(--cream);outline:none;margin-bottom:10px;
+      " onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+      <input type="password" id="login-pass" placeholder="Contraseña" style="
+        width:100%;padding:10px 12px;
+        background:var(--surface);border:1px solid var(--border2);
+        border-radius:10px;font-family:var(--font);font-size:13px;
+        color:var(--cream);outline:none;
+      " onkeydown="if(event.key==='Enter')adminLogin()">
+    </div>
+    <div id="login-error" style="font-size:11px;color:var(--red);margin-bottom:10px;display:none;font-weight:600">Email o contraseña incorrectos.</div>
+    <button onclick="adminLogin()" style="
+      width:100%;padding:11px;
+      background:linear-gradient(135deg,#FF2E9A,#E6007E 62%);color:#fff;
+      border:none;border-radius:10px;font-family:var(--font);
+      font-size:12px;font-weight:800;cursor:pointer;letter-spacing:.3px;
+    ">Entrar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://tdotlurmytvcdgmlmecc.supabase.co';
+const SUPABASE_KEY='sb_publishable_QH5TpVUMwoqtcEIcTPo-Qg_UF6LnZYi';
+const {createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let candidatos=[],vacantes=[],pruebas=[],actual=null,pruebaFileReady=null;
+
+const labels={
+  preseleccionado:'Preseleccionado',perfil_incompleto:'Perfil incompleto',
+  tests_completados:'Tests completados',prueba_asignada:'Prueba asignada',
+  prueba_entregada:'Prueba entregada',entrevista_tecnica:'Entrevista técnica',
+  oferta:'Oferta',descartado:'Descartado'
+};
+
+async function init(){
+  // Comprobar si hay sesión activa
+  const {data:{session}}=await db.auth.getSession();
+  if(!session){
+    // Mostrar login
+    document.getElementById('login-overlay').style.display='flex';
+    document.querySelector('.app').style.display='none';
+    document.querySelector('header').style.display='none';
+    return;
+  }
+  await Promise.all([loadCandidatos(),loadVacantes(),loadPruebas()]);
+}
+
+async function adminLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  document.getElementById('login-error').style.display='none';
+  const {error}=await db.auth.signInWithPassword({email,password:pass});
+  if(error){
+    document.getElementById('login-error').style.display='block';
+    return;
+  }
+  document.getElementById('login-overlay').style.display='none';
+  document.querySelector('.app').style.display='flex';
+  document.querySelector('header').style.display='flex';
+  await Promise.all([loadCandidatos(),loadVacantes(),loadPruebas()]);
+}
+
+async function adminLogout(){
+  await db.auth.signOut();
+  location.reload();
+}
+
+async function loadCandidatos(){
+  const {data}=await db.from('candidatos').select('*,vacantes(titulo)').order('created_at',{ascending:false});
+  candidatos=data||[];
+  renderCandidatos(candidatos);
+  updateStats(candidatos);
+  document.getElementById('badge-candidatos').textContent=candidatos.filter(c=>c.estado!=='descartado').length;
+}
+
+async function loadVacantes(){
+  const {data}=await db.from('vacantes').select('*').order('created_at',{ascending:false});
+  vacantes=data||[];
+  renderVacantes(vacantes);
+  document.getElementById('badge-vacantes').textContent=vacantes.filter(v=>v.estado==='abierta').length;
+  poblarSelectVacantes();
+}
+
+function updateStats(list){
+  const activos=list.filter(c=>c.estado!=='descartado');
+  const tests=list.filter(c=>['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta'].includes(c.estado));
+  const pruebas=list.filter(c=>c.estado==='prueba_entregada');
+  const ofertas=list.filter(c=>c.estado==='oferta');
+  document.getElementById('stat-total').textContent=activos.length;
+  document.getElementById('stat-tests').textContent=tests.length;
+  document.getElementById('stat-pruebas').textContent=pruebas.length;
+  document.getElementById('stat-ofertas').textContent=ofertas.length;
+  document.getElementById('live-count').textContent=`${activos.length} candidato${activos.length!==1?'s':''} activo${activos.length!==1?'s':''}`;
+  document.getElementById('subtitle-count').textContent=`${list.length} candidato${list.length!==1?'s':''} en total`;
+}
+
+function renderCandidatos(list){
+  const tbody=document.getElementById('tabla-candidatos');
+  if(!list.length){
+    tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👥</div><div style="font-weight:800;color:var(--muted)">Sin candidatos</div><p>Crea el primero con el botón de arriba</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=list.map(c=>`
+    <tr onclick="abrirCandidato('${c.id}')">
+      <td><div class="td-name">${c.nombre}</div><div class="td-email">${c.email}</div></td>
+      <td>${c.vacantes?`<span class="vac-tag">${c.vacantes.titulo}</span>`:'<span style="color:var(--muted2);font-size:11px">—</span>'}</td>
+      <td><span class="badge b-${c.estado}"><span class="badge-dot"></span>${labels[c.estado]||c.estado}</span></td>
+      <td>${['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta'].includes(c.estado)?'<span class="disc-chip">DISC ✓</span>':'<span style="color:var(--muted2);font-size:11px">—</span>'}</td>
+      <td class="td-date">${fmt(c.created_at)}</td>
+    </tr>`).join('');
+}
+
+function renderVacantes(list){
+  const tbody=document.getElementById('tabla-vacantes');
+  if(!list.length){
+    tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><div style="font-weight:800;color:var(--muted)">Sin vacantes</div><p>Crea la primera con el botón de arriba</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=list.map(v=>{
+    const n=candidatos.filter(c=>c.vacante_id===v.id).length;
+    return `<tr>
+      <td><div class="td-name">${v.titulo}</div></td>
+      <td>${v.equipo||'<span style="color:var(--muted2)">—</span>'}</td>
+      <td><span class="badge" style="background:${v.estado==='abierta'?'rgba(74,200,130,.1)':'rgba(255,255,255,.05)'};color:${v.estado==='abierta'?'var(--green)':'var(--muted)'};border:1px solid ${v.estado==='abierta'?'rgba(74,200,130,.25)':'var(--border)'}">
+        <span class="badge-dot" style="background:${v.estado==='abierta'?'var(--green)':'var(--muted)'}"></span>${v.estado}
+      </span></td>
+      <td style="color:var(--muted);font-weight:600;font-size:12px">${n} candidato${n!==1?'s':''}</td>
+      <td class="td-date">${fmt(v.created_at)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function poblarSelectVacantes(){
+  ['filter-vacante','n-vacante'].forEach(id=>{
+    const sel=document.getElementById(id);
+    const current=sel.value;
+    while(sel.options.length>1)sel.remove(1);
+    vacantes.forEach(v=>{const o=new Option(v.titulo,v.id);sel.appendChild(o)});
+    sel.value=current;
+  });
+}
+
+async function loadPruebas(){
+  const {data}=await db.from('biblioteca_pruebas').select('*,vacantes(titulo)').order('created_at',{ascending:false});
+  pruebas=data||[];
+  renderPruebas(pruebas);
+  document.getElementById('badge-pruebas').textContent=pruebas.length;
+  poblarSelectPruebas();
+  // También poblar select de vacante en modal prueba
+  const sel=document.getElementById('p-vacante');
+  while(sel.options.length>1)sel.remove(1);
+  vacantes.forEach(v=>{sel.appendChild(new Option(v.titulo,v.id))});
+}
+
+function renderPruebas(list){
+  const tbody=document.getElementById('tabla-pruebas');
+  if(!list.length){
+    tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><div style="font-weight:800;color:var(--muted)">Sin pruebas</div><p>Crea la primera con el botón de arriba</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=list.map(p=>`
+    <tr>
+      <td><div class="td-name">${p.titulo}</div>${p.descripcion?`<div class="td-email">${p.descripcion.substring(0,60)}${p.descripcion.length>60?'...':''}</div>`:''}</td>
+      <td>${p.vacantes?`<span class="vac-tag">${p.vacantes.titulo}</span>`:'<span style="color:var(--muted2);font-size:11px">Cualquier vacante</span>'}</td>
+      <td>${p.archivo_url?`<a class="field-link" href="${p.archivo_url}" target="_blank">📄 ${p.archivo_nombre||'Ver PDF'}</a>`:'<span style="color:var(--red);font-size:11px">Sin archivo</span>'}</td>
+      <td style="color:var(--muted);font-size:12px;font-weight:600">${candidatos.filter(c=>c.prueba_id===p.id||false).length} asignaciones</td>
+      <td class="td-date">${fmt(p.created_at)}</td>
+    </tr>`).join('');
+}
+
+function poblarSelectPruebas(){
+  const sel=document.getElementById('m-prueba-select');
+  if(!sel)return;
+  while(sel.options.length>1)sel.remove(1);
+  pruebas.forEach(p=>sel.appendChild(new Option(p.titulo,p.id)));
+}
+
+function pDrop(e){
+  e.preventDefault();
+  document.getElementById('p-drop-zone').classList.remove('dragging');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type==='application/pdf')pSeleccionado(f);
+  else toast_msg('Solo se aceptan archivos PDF');
+}
+
+function pSeleccionado(file){
+  if(!file||file.type!=='application/pdf'){toast_msg('Solo PDF');return}
+  pruebaFileReady=file;
+  document.getElementById('p-drop-label').textContent='✓ '+file.name;
+  document.getElementById('p-drop-zone').style.borderColor='rgba(74,200,130,.5)';
+  const btn=document.getElementById('p-save-btn');
+  btn.style.opacity='1';btn.style.pointerEvents='auto';
+}
+
+async function crearPrueba(){
+  const titulo=document.getElementById('p-titulo').value.trim();
+  if(!titulo){toast_msg('El título es obligatorio');return}
+  if(!pruebaFileReady){toast_msg('Sube el PDF de la prueba');return}
+
+  document.getElementById('p-uploading').style.display='flex';
+  document.getElementById('p-drop-zone').style.display='none';
+
+  const path=`${Date.now()}_${pruebaFileReady.name}`;
+  const{error:upErr}=await db.storage.from('pruebas').upload(path,pruebaFileReady,{upsert:true});
+  if(upErr){toast_msg('Error al subir el archivo');document.getElementById('p-uploading').style.display='none';document.getElementById('p-drop-zone').style.display='block';return}
+
+  const{data:urlData}=db.storage.from('pruebas').getPublicUrl(path);
+  const archivo_url=urlData?.publicUrl||path;
+  const vac=document.getElementById('p-vacante').value||null;
+
+  const{error}=await db.from('biblioteca_pruebas').insert({
+    titulo,
+    descripcion:document.getElementById('p-desc').value.trim()||null,
+    vacante_id:vac,
+    archivo_url,
+    archivo_nombre:pruebaFileReady.name
+  });
+
+  if(error){toast_msg('Error al guardar la prueba');return}
+  toast_msg('Prueba creada correctamente');
+  closeModal('modal-prueba-nueva');
+  resetFormPrueba();
+  await loadPruebas();
+}
+
+function resetFormPrueba(){
+  ['p-titulo','p-desc'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('p-vacante').value='';
+  document.getElementById('p-drop-label').textContent='Subir PDF de la prueba';
+  document.getElementById('p-drop-zone').style.borderColor='';
+  document.getElementById('p-drop-zone').style.display='block';
+  document.getElementById('p-uploading').style.display='none';
+  document.getElementById('p-file-input').value='';
+  document.getElementById('p-save-btn').style.opacity='.4';
+  document.getElementById('p-save-btn').style.pointerEvents='none';
+  pruebaFileReady=null;
+}
+
+function openNuevaPrueba(){document.getElementById('modal-prueba-nueva').classList.add('open')}
+
+async function asignarPrueba(){
+  if(!actual)return;
+  const pruebaId=document.getElementById('m-prueba-select').value;
+  if(!pruebaId){toast_msg('Selecciona una prueba');return}
+  const prueba=pruebas.find(p=>p.id===pruebaId);
+  if(!prueba)return;
+
+  // Crear registro en pruebas_tecnicas
+  const{error}=await db.from('pruebas_tecnicas').upsert({
+    candidato_id:actual.id,
+    enunciado_url:prueba.archivo_url,
+    instrucciones:prueba.descripcion,
+    biblioteca_prueba_id:pruebaId,
+    fecha_asignacion:new Date().toISOString()
+  },{onConflict:'candidato_id'});
+
+  if(error){toast_msg('Error al asignar la prueba');return}
+
+  // Cambiar estado a prueba_asignada
+  await db.from('candidatos').update({estado:'prueba_asignada',updated_at:new Date().toISOString()}).eq('id',actual.id);
+  await db.from('historial_estados').insert({candidato_id:actual.id,estado_anterior:actual.estado,estado_nuevo:'prueba_asignada',cambiado_por:'Lucía'});
+  actual.estado='prueba_asignada';
+
+  toast_msg('Prueba asignada — el candidato puede verla ahora');
+  await abrirCandidato(actual.id);
+  await loadCandidatos();
+}
+
+async function desasignarPrueba(){
+  if(!actual||!confirm('¿Quitar la prueba asignada?'))return;
+  await db.from('pruebas_tecnicas').delete().eq('candidato_id',actual.id);
+  await db.from('candidatos').update({estado:'tests_completados',updated_at:new Date().toISOString()}).eq('id',actual.id);
+  actual.estado='tests_completados';
+  toast_msg('Prueba quitada');
+  await abrirCandidato(actual.id);
+  await loadCandidatos();
+}
+
+async function descargarPrueba(){
+  if(!actual)return;
+  const{data:pt}=await db.from('pruebas_tecnicas').select('enunciado_url').eq('candidato_id',actual.id).maybeSingle();
+  if(pt?.enunciado_url)window.open(pt.enunciado_url,'_blank');
+}
+
+function filtrar(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  const est=document.getElementById('filter-estado').value;
+  const vac=document.getElementById('filter-vacante').value;
+  renderCandidatos(candidatos.filter(c=>{
+    const mq=!q||c.nombre.toLowerCase().includes(q)||c.email.toLowerCase().includes(q);
+    const me=!est||c.estado===est;
+    const mv=!vac||c.vacante_id===vac;
+    return mq&&me&&mv;
+  }));
+}
+
+async function abrirCandidato(id){
+  actual=candidatos.find(c=>c.id===id);
+  if(!actual)return;
+  const c=actual;
+  document.getElementById('m-nombre').textContent=c.nombre;
+  document.getElementById('m-vacante-label').textContent=c.vacantes?.titulo||vacantes.find(v=>v.id===c.vacante_id)?.titulo||'Sin vacante asignada';
+  document.getElementById('m-email').textContent=c.email;
+  document.getElementById('m-tel').textContent=c.telefono||'—';
+  document.getElementById('m-presentacion').textContent=c.presentacion||'—';
+  document.getElementById('m-linkedin').innerHTML=c.linkedin?`<a class="field-link" href="${c.linkedin}" target="_blank">↗ Ver perfil</a>`:'<span style="color:var(--muted2);font-size:12px">—</span>';
+  document.getElementById('m-cv').innerHTML=c.cv_url?`<a class="field-link" href="${c.cv_url}" target="_blank">📄 Descargar CV</a>`:'<span style="color:var(--muted2);font-size:12px">No subido</span>';
+  document.getElementById('m-estado').value=c.estado;
+  document.getElementById('m-notas').value=c.notas_internas||'';
+
+  // CV
+  renderCV(c);
+
+  // DISC
+  const{data:disc}=await db.from('resultados_disc').select('*').eq('candidato_id',id).maybeSingle();
+  if(disc){
+    document.getElementById('m-disc-perfil').innerHTML=`<svg width="10" height="10" viewBox="0 0 24 24" fill="var(--pink)"><circle cx="12" cy="12" r="10"/></svg> Perfil ${disc.perfil_principal||''}${disc.perfil_secundario?'('+disc.perfil_secundario+')':''} — ${disc.tipo_perfil||''}`;
+    document.getElementById('m-disc-bars').innerHTML=['D','I','S','C'].map(d=>`
+      <div class="disc-row">
+        <span class="disc-letter">${d}</span>
+        <div class="disc-bar-bg"><div class="disc-bar-fill" style="width:${disc['puntuacion_'+d.toLowerCase()]||0}%"></div></div>
+        <span class="disc-score">${disc['puntuacion_'+d.toLowerCase()]||0}</span>
+      </div>`).join('');
+  } else {
+    document.getElementById('m-disc-perfil').innerHTML='<span style="opacity:.4;font-size:12px;font-weight:600">Sin completar</span>';
+    document.getElementById('m-disc-bars').innerHTML='';
+  }
+
+  // Prueba
+  const{data:prueba}=await db.from('pruebas_tecnicas').select('*,biblioteca_pruebas(titulo)').eq('candidato_id',id).maybeSingle();
+  const elAsignada=document.getElementById('m-prueba-asignada');
+  const elSelector=document.getElementById('m-prueba-selector');
+  const elVacia=document.getElementById('m-prueba-vacia');
+  const elEntrega=document.getElementById('m-entrega-candidato');
+  if(prueba){
+    elAsignada.style.display='block';elSelector.style.display='none';elVacia.style.display='none';
+    document.getElementById('m-prueba-nombre').textContent=prueba.biblioteca_pruebas?.titulo||'Prueba asignada';
+    if(prueba.entrega_url){
+      elEntrega.style.display='block';
+      document.getElementById('m-entrega-link').href=prueba.entrega_url;
+    } else {
+      elEntrega.style.display='none';
+    }
+  } else {
+    elAsignada.style.display='none';elVacia.style.display='none';
+    elSelector.style.display='block';
+    poblarSelectPruebas();
+  }
+
+  // Historial
+  const{data:hist}=await db.from('historial_estados').select('*').eq('candidato_id',id).order('created_at',{ascending:false});
+  document.getElementById('m-historial').innerHTML=hist&&hist.length?hist.map(h=>`
+    <div class="historial-item">
+      ${h.estado_anterior?`${labels[h.estado_anterior]||h.estado_anterior} → `:''}${labels[h.estado_nuevo]||h.estado_nuevo}
+      <div class="historial-fecha">${fmt(h.created_at)}</div>
+    </div>`).join(''):'<span style="color:var(--muted2);font-size:11px;font-weight:600">Sin cambios registrados</span>';
+
+  document.getElementById('modal-cand').classList.add('open');
+}
+
+function renderCV(c){
+  const exists=document.getElementById('m-cv-exists');
+  const upload=document.getElementById('m-cv-upload');
+  if(c.cv_url){
+    exists.style.display='flex';
+    upload.style.display='none';
+    // Extraer nombre del archivo de la URL
+    const partes=c.cv_url.split('/');
+    document.getElementById('m-cv-nombre').textContent=decodeURIComponent(partes[partes.length-1].split('?')[0]);
+  } else {
+    exists.style.display='none';
+    upload.style.display='block';
+  }
+}
+
+function cvDragOver(e){e.preventDefault();document.getElementById('cv-drop-zone').classList.add('dragging')}
+function cvDragLeave(){document.getElementById('cv-drop-zone').classList.remove('dragging')}
+function cvDrop(e){e.preventDefault();cvDragLeave();const f=e.dataTransfer.files[0];if(f&&f.type==='application/pdf')cvSeleccionado(f);else toast_msg('Solo se aceptan archivos PDF')}
+
+async function cvSeleccionado(file){
+  if(!actual||!file)return;
+  if(file.type!=='application/pdf'){toast_msg('Solo se aceptan archivos PDF');return}
+  if(file.size>10*1024*1024){toast_msg('El archivo no puede superar 10 MB');return}
+
+  document.getElementById('cv-drop-zone').style.display='none';
+  document.getElementById('cv-uploading').style.display='flex';
+
+  const path=`${actual.id}/${Date.now()}_${file.name}`;
+  const{error:upErr}=await db.storage.from('cvs').upload(path,file,{upsert:true});
+  if(upErr){
+    toast_msg('Error al subir el CV');
+    document.getElementById('cv-drop-zone').style.display='block';
+    document.getElementById('cv-uploading').style.display='none';
+    return;
+  }
+
+  const{data:urlData}=db.storage.from('cvs').getPublicUrl(path);
+  const cv_url=urlData?.publicUrl||path;
+
+  await db.from('candidatos').update({cv_url,updated_at:new Date().toISOString()}).eq('id',actual.id);
+  actual.cv_url=cv_url;
+
+  document.getElementById('cv-uploading').style.display='none';
+  document.getElementById('cv-drop-zone').style.display='block';
+  renderCV(actual);
+  toast_msg('CV subido correctamente');
+  await loadCandidatos();
+}
+
+async function descargarCV(){
+  if(!actual?.cv_url)return;
+  window.open(actual.cv_url,'_blank');
+}
+
+async function eliminarCV(){
+  if(!actual?.cv_url)return;
+  if(!confirm('¿Eliminar el CV de este candidato?'))return;
+  // Extraer path del bucket desde la URL
+  const url=actual.cv_url;
+  const marker='/object/public/cvs/';
+  const path=url.includes(marker)?url.split(marker)[1]:null;
+  if(path)await db.storage.from('cvs').remove([decodeURIComponent(path)]);
+  await db.from('candidatos').update({cv_url:null,updated_at:new Date().toISOString()}).eq('id',actual.id);
+  actual.cv_url=null;
+  renderCV(actual);
+  toast_msg('CV eliminado');
+  await loadCandidatos();
+}
+
+async function guardar(){
+  if(!actual)return;
+  const nuevoEstado=document.getElementById('m-estado').value;
+  const notas=document.getElementById('m-notas').value;
+  const anterior=actual.estado;
+  const{error}=await db.from('candidatos').update({estado:nuevoEstado,notas_internas:notas,updated_at:new Date().toISOString()}).eq('id',actual.id);
+  if(error){toast_msg('Error al guardar');return}
+  if(nuevoEstado!==anterior){
+    await db.from('historial_estados').insert({candidato_id:actual.id,estado_anterior:anterior,estado_nuevo:nuevoEstado,cambiado_por:'Lucía'});
+  }
+  toast_msg('Cambios guardados');
+  closeModal('modal-cand');
+  await loadCandidatos();
+}
+
+async function crearCandidato(){
+  const nombre=document.getElementById('n-nombre').value.trim();
+  const email=document.getElementById('n-email').value.trim();
+  const tel=document.getElementById('n-tel').value.trim();
+  const vac=document.getElementById('n-vacante').value||null;
+  if(!nombre||!email){toast_msg('Nombre y email son obligatorios');return}
+  const{error}=await db.from('candidatos').insert({nombre,email,telefono:tel||null,vacante_id:vac,estado:'preseleccionado',magic_token:crypto.randomUUID()});
+  if(error){toast_msg(error.message.includes('unique')?'Este email ya existe':'Error al crear candidato');return}
+  toast_msg('Candidato creado');
+  closeModal('modal-nuevo');
+  ['n-nombre','n-email','n-tel'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('n-vacante').value='';
+  await loadCandidatos();
+}
+
+async function crearVacante(){
+  const titulo=document.getElementById('v-titulo').value.trim();
+  if(!titulo){toast_msg('El título es obligatorio');return}
+  const{error}=await db.from('vacantes').insert({titulo,equipo:document.getElementById('v-equipo').value.trim()||null,descripcion:document.getElementById('v-desc').value.trim()||null,perfil_disc_ideal:document.getElementById('v-disc').value.trim()||null});
+  if(error){toast_msg('Error al crear vacante');return}
+  toast_msg('Vacante creada');
+  closeModal('modal-vacante');
+  ['v-titulo','v-equipo','v-desc','v-disc'].forEach(i=>document.getElementById(i).value='');
+  await loadVacantes();
+}
+
+function showView(v){
+  ['candidatos','vacantes','pruebas'].forEach(name=>{
+    document.getElementById('view-'+name).style.display=v===name?'':'none';
+  });
+  document.querySelectorAll('.nav-item').forEach((el,i)=>el.classList.toggle('active',(v==='candidatos'&&i===0)||(v==='vacantes'&&i===1)||(v==='pruebas'&&i===2)));
+}
+function openNuevoCandidato(){document.getElementById('modal-nuevo').classList.add('open')}
+function openNuevaVacante(){document.getElementById('modal-vacante').classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='modal-cand')actual=null}
+['modal-cand','modal-nuevo','modal-vacante','modal-prueba-nueva'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal(id)});
+});
+
+function fmt(iso){
+  if(!iso)return'—';
+  return new Date(iso).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+}
+function toast_msg(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+init();
+</script>
+</body>
+</html>
