@@ -426,7 +426,6 @@ td{padding:13px 16px;font-size:12px}
           <option value="prueba_entregada">Prueba entregada</option>
           <option value="entrevista_tecnica">Entrevista técnica</option>
           <option value="oferta">Oferta</option>
-          <option value="descartado">Descartado</option>
         </select>
         <select class="filter-select" id="filter-vacante" onchange="filtrar()">
           <option value="">Todas las vacantes</option>
@@ -542,16 +541,6 @@ td{padding:13px 16px;font-size:12px}
         <div class="field-lbl">Teléfono</div>
         <div class="field-val" id="m-tel">—</div>
       </div>
-    </div>
-
-    <div class="field-block">
-      <div class="field-lbl">LinkedIn</div>
-      <div id="m-linkedin">—</div>
-    </div>
-
-    <div class="field-block">
-      <div class="field-lbl">Presentación</div>
-      <div class="field-val" id="m-presentacion" style="font-size:12px;line-height:1.6">—</div>
     </div>
 
     <div class="field-block">
@@ -882,9 +871,11 @@ async function adminLogout(){
 async function loadCandidatos(){
   const {data}=await db.from('candidatos').select('*,vacantes(titulo)').order('created_at',{ascending:false});
   candidatos=data||[];
-  renderCandidatos(candidatos);
-  updateStats(candidatos);
-  document.getElementById('badge-candidatos').textContent=candidatos.filter(c=>c.estado!=='descartado').length;
+  const activos=candidatos.filter(c=>c.estado!=='descartado');
+  renderCandidatos(activos);
+  updateStats(activos);
+  document.getElementById('badge-candidatos').textContent=activos.length;
+  document.getElementById('badge-biblioteca').textContent=candidatos.filter(c=>c.estado==='descartado').length;
 }
 
 async function loadVacantes(){
@@ -1101,6 +1092,7 @@ function filtrar(){
   const est=document.getElementById('filter-estado').value;
   const vac=document.getElementById('filter-vacante').value;
   renderCandidatos(candidatos.filter(c=>{
+    if(c.estado==='descartado')return false;
     const mq=!q||c.nombre.toLowerCase().includes(q)||c.email.toLowerCase().includes(q);
     const me=!est||c.estado===est;
     const mv=!vac||c.vacante_id===vac;
@@ -1117,7 +1109,6 @@ async function abrirCandidato(id){
   document.getElementById('m-email').textContent=c.email;
   document.getElementById('m-tel').textContent=c.telefono||'—';
   document.getElementById('m-presentacion').textContent=c.presentacion||'—';
-  document.getElementById('m-linkedin').innerHTML=c.linkedin?`<a class="field-link" href="${c.linkedin}" target="_blank">↗ Ver perfil</a>`:'<span style="color:var(--muted2);font-size:12px">—</span>';
   document.getElementById('m-estado').value=c.estado;
   document.getElementById('m-notas').value=c.notas_internas||'';
 
