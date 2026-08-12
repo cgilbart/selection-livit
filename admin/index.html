@@ -359,6 +359,12 @@ td{padding:13px 16px;font-size:12px}
       <span>Pruebas técnicas</span>
       <span class="nav-badge" id="badge-pruebas">0</span>
     </button>
+    <div class="nav-section-label" style="margin-top:8px">Archivo</div>
+    <button class="nav-item" onclick="showView('biblioteca')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Biblioteca</span>
+      <span class="nav-badge" id="badge-biblioteca">0</span>
+    </button>
     <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border)">
       <div style="padding:8px 10px;font-size:10px;font-weight:600;color:var(--muted2)">
         <div style="color:var(--muted);font-weight:700;font-size:11px">Lucía</div>
@@ -493,6 +499,26 @@ td{padding:13px 16px;font-size:12px}
       </div>
     </div>
 
+    <!-- VISTA BIBLIOTECA -->
+    <div id="view-biblioteca" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Biblioteca de candidatos</div>
+          <div class="page-subtitle">Candidatos descartados — archivados para futura referencia</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Candidato</th><th>Vacante</th><th>DISC</th><th>Descartado</th><th></th></tr>
+          </thead>
+          <tbody id="tabla-biblioteca">
+            <tr><td colspan="5" class="loading">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -612,6 +638,7 @@ td{padding:13px 16px;font-size:12px}
 
     <button class="save-btn" onclick="guardar()">Guardar cambios</button>
     <button class="reinvitar-btn" onclick="enviarInvitacion()">📧 Reenviar invitación</button>
+    <button class="reinvitar-btn" style="color:var(--red);border-color:rgba(255,82,82,.2);margin-top:4px" onclick="borrarCandidato()">🗑 Eliminar candidato permanentemente</button>
 
     <hr class="divider">
 
@@ -776,6 +803,48 @@ const labels={
   prueba_entregada:'Prueba entregada',entrevista_tecnica:'Entrevista técnica',
   oferta:'Oferta',descartado:'Descartado'
 };
+
+async function loadBiblioteca(){
+  const{data}=await db.from('candidatos').select('*,vacantes(titulo),resultados_disc(perfil_principal,perfil_secundario)').eq('estado','descartado').order('updated_at',{ascending:false});
+  const lista=data||[];
+  document.getElementById('badge-biblioteca').textContent=lista.length;
+  const tbody=document.getElementById('tabla-biblioteca');
+  if(!lista.length){
+    tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📚</div><div style="font-weight:800;color:var(--muted)">Sin candidatos archivados</div><p>Los candidatos descartados aparecerán aquí</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=lista.map(c=>{
+    const disc=c.resultados_disc?.[0];
+    const perfil=disc?`${disc.perfil_principal||''}${disc.perfil_secundario?'('+disc.perfil_secundario+')':''}`:'—';
+    return `<tr onclick="abrirCandidato('${c.id}')">
+      <td><div class="td-name">${c.nombre}</div><div class="td-email">${c.email}</div></td>
+      <td>${c.vacantes?`<span class="vac-tag">${c.vacantes.titulo}</span>`:'<span style="color:var(--muted2);font-size:11px">—</span>'}</td>
+      <td><span style="font-size:11px;font-weight:700;color:var(--muted)">${perfil}</span></td>
+      <td class="td-date">${fmt(c.updated_at)}</td>
+      <td><button onclick="event.stopPropagation();restaurarCandidato('${c.id}')" style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer">Restaurar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function restaurarCandidato(id){
+  await db.from('candidatos').update({estado:'preseleccionado',updated_at:new Date().toISOString()}).eq('id',id);
+  toast_msg('Candidato restaurado al proceso');
+  loadBiblioteca();
+  await loadCandidatos();
+}
+
+async function borrarCandidato(){
+  if(!actual)return;
+  if(!confirm(`¿Eliminar permanentemente a ${actual.nombre}? Esta acción no se puede deshacer.`))return;
+  await db.from('historial_estados').delete().eq('candidato_id',actual.id);
+  await db.from('resultados_disc').delete().eq('candidato_id',actual.id);
+  await db.from('pruebas_tecnicas').delete().eq('candidato_id',actual.id);
+  await db.from('respuestas_personalidad').delete().eq('candidato_id',actual.id);
+  await db.from('candidatos').delete().eq('id',actual.id);
+  toast_msg('Candidato eliminado');
+  closeModal('modal-cand');
+  await loadCandidatos();
+}
 
 async function init(){
   // Comprobar si hay sesión activa
@@ -1233,10 +1302,11 @@ async function crearVacante(){
 }
 
 function showView(v){
-  ['candidatos','vacantes','pruebas'].forEach(name=>{
+  ['candidatos','vacantes','pruebas','biblioteca'].forEach(name=>{
     document.getElementById('view-'+name).style.display=v===name?'':'none';
   });
-  document.querySelectorAll('.nav-item').forEach((el,i)=>el.classList.toggle('active',(v==='candidatos'&&i===0)||(v==='vacantes'&&i===1)||(v==='pruebas'&&i===2)));
+  document.querySelectorAll('.nav-item').forEach((el,i)=>el.classList.toggle('active',(v==='candidatos'&&i===0)||(v==='vacantes'&&i===1)||(v==='pruebas'&&i===2)||(v==='biblioteca'&&i===3)));
+  if(v==='biblioteca')loadBiblioteca();
 }
 function openNuevoCandidato(){document.getElementById('modal-nuevo').classList.add('open')}
 function openNuevaVacante(){document.getElementById('modal-vacante').classList.add('open')}
