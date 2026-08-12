@@ -1049,7 +1049,6 @@ async function abrirCandidato(id){
   document.getElementById('m-tel').textContent=c.telefono||'—';
   document.getElementById('m-presentacion').textContent=c.presentacion||'—';
   document.getElementById('m-linkedin').innerHTML=c.linkedin?`<a class="field-link" href="${c.linkedin}" target="_blank">↗ Ver perfil</a>`:'<span style="color:var(--muted2);font-size:12px">—</span>';
-  document.getElementById('m-cv').innerHTML=c.cv_url?`<a class="field-link" href="${c.cv_url}" target="_blank">📄 Descargar CV</a>`:'<span style="color:var(--muted2);font-size:12px">No subido</span>';
   document.getElementById('m-estado').value=c.estado;
   document.getElementById('m-notas').value=c.notas_internas||'';
 
