@@ -1108,7 +1108,6 @@ async function abrirCandidato(id){
   document.getElementById('m-vacante-label').textContent=c.vacantes?.titulo||vacantes.find(v=>v.id===c.vacante_id)?.titulo||'Sin vacante asignada';
   document.getElementById('m-email').textContent=c.email;
   document.getElementById('m-tel').textContent=c.telefono||'—';
-  document.getElementById('m-presentacion').textContent=c.presentacion||'—';
   document.getElementById('m-estado').value=c.estado;
   document.getElementById('m-notas').value=c.notas_internas||'';
 
