@@ -1284,7 +1284,15 @@ async function desasignarPrueba(){
 async function descargarPrueba(){
   if(!actual)return;
   const{data:pt}=await db.from('pruebas_tecnicas').select('enunciado_url').eq('candidato_id',actual.id).maybeSingle();
-  if(pt?.enunciado_url)window.open(pt.enunciado_url,'_blank');
+  if(!pt?.enunciado_url)return;
+  const url=pt.enunciado_url;
+  const path=url.includes('/object/public/pruebas/')?decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]):null;
+  if(path){
+    const{data}=await db.storage.from('pruebas').createSignedUrl(path,3600);
+    if(data?.signedUrl)window.open(data.signedUrl,'_blank');
+  } else {
+    window.open(url,'_blank');
+  }
 }
 
 function filtrar(){
@@ -1414,7 +1422,18 @@ async function cvSeleccionado(file){
 
 async function descargarCV(){
   if(!actual?.cv_url)return;
-  window.open(actual.cv_url,'_blank');
+  // Extraer path del bucket
+  const url=actual.cv_url;
+  const marker='/object/public/cvs/';
+  const markerPrivate='/object/sign/cvs/';
+  let path=null;
+  if(url.includes('/object/public/cvs/'))path=decodeURIComponent(url.split('/object/public/cvs/')[1].split('?')[0]);
+  else if(url.includes('/object/sign/cvs/'))path=decodeURIComponent(url.split('/object/sign/cvs/')[1].split('?')[0]);
+  else path=url;
+  if(path){
+    const{data}=await db.storage.from('cvs').createSignedUrl(path,3600);
+    if(data?.signedUrl)window.open(data.signedUrl,'_blank');
+  }
 }
 
 async function eliminarCV(){
