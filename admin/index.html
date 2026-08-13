@@ -1350,10 +1350,11 @@ async function abrirCandidato(id){
     document.getElementById('m-prueba-nombre').textContent=prueba.biblioteca_pruebas?.titulo||'Prueba asignada';
     if(prueba.entrega_url){
       elEntrega.style.display='block';
-      // Generar URL firmada para descarga
       const url=prueba.entrega_url;
-      const marker='/object/public/entregas/';
-      const path=url.includes(marker)?decodeURIComponent(url.split(marker)[1].split('?')[0]):null;
+      // Extraer path — puede ser /storage/v1/object/entregas/PATH o URL pública
+      let path=null;
+      if(url.includes('/object/entregas/'))path=decodeURIComponent(url.split('/object/entregas/')[1].split('?')[0]);
+      else if(url.includes('/object/public/entregas/'))path=decodeURIComponent(url.split('/object/public/entregas/')[1].split('?')[0]);
       if(path){
         const{data:signed}=await db.storage.from('entregas').createSignedUrl(path,3600);
         document.getElementById('m-entrega-link').href=signed?.signedUrl||url;
