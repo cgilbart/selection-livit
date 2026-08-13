@@ -626,7 +626,7 @@ td{padding:13px 16px;font-size:12px}
     </div>
 
     <button class="save-btn" onclick="guardar()">Guardar cambios</button>
-    <button class="reinvitar-btn" onclick="enviarInvitacion()">📧 Reenviar invitación</button>
+    <button class="reinvitar-btn" onclick="copiarEnlace()">🔗 Copiar enlace de acceso</button>
     <button class="reinvitar-btn" style="color:var(--red);border-color:rgba(255,82,82,.2);margin-top:4px" onclick="borrarCandidato()">🗑 Eliminar candidato permanentemente</button>
 
     <hr class="divider">
@@ -1254,13 +1254,21 @@ async function crearCandidato(){
   const token=crypto.randomUUID();
   const{data:nuevo,error}=await db.from('candidatos').insert({nombre,email,telefono:tel||null,vacante_id:vac,estado:'preseleccionado',magic_token:token}).select().single();
   if(error){toast_msg(error.message.includes('unique')?'Este email ya existe':'Error al crear candidato');return}
-  // Enviar invitación automáticamente
-  toast_msg('Candidato creado — enviando invitación...');
-  await enviarInvitacion(nuevo.id);
+  toast_msg('Candidato creado — copia su enlace de acceso desde la ficha');
   closeModal('modal-nuevo');
   ['n-nombre','n-email','n-tel'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('n-vacante').value='';
   await loadCandidatos();
+}
+
+function copiarEnlace(){
+  if(!actual?.magic_token){toast_msg('Este candidato no tiene enlace generado');return}
+  const enlace=`https://selection-livit.netlify.app/candidato/?token=${actual.magic_token}`;
+  navigator.clipboard.writeText(enlace).then(()=>{
+    toast_msg('Enlace copiado — pégalo en WhatsApp o email');
+  }).catch(()=>{
+    prompt('Copia este enlace:',enlace);
+  });
 }
 
 async function enviarInvitacion(candidatoId){
