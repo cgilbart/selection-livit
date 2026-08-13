@@ -1350,7 +1350,16 @@ async function abrirCandidato(id){
     document.getElementById('m-prueba-nombre').textContent=prueba.biblioteca_pruebas?.titulo||'Prueba asignada';
     if(prueba.entrega_url){
       elEntrega.style.display='block';
-      document.getElementById('m-entrega-link').href=prueba.entrega_url;
+      // Generar URL firmada para descarga
+      const url=prueba.entrega_url;
+      const marker='/object/public/entregas/';
+      const path=url.includes(marker)?decodeURIComponent(url.split(marker)[1].split('?')[0]):null;
+      if(path){
+        const{data:signed}=await db.storage.from('entregas').createSignedUrl(path,3600);
+        document.getElementById('m-entrega-link').href=signed?.signedUrl||url;
+      } else {
+        document.getElementById('m-entrega-link').href=url;
+      }
     } else {
       elEntrega.style.display='none';
     }

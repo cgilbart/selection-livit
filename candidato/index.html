@@ -670,10 +670,10 @@ async function subirEntrega(file){
   }
   const drop=document.querySelector('.entrega-drop');
   if(drop)drop.innerHTML='<div class="entrega-drop-label">Subiendo...</div>';
-  const path=`entregas/${cand.id}/${Date.now()}_${file.name}`;
-  const{error}=await dbCand.storage.from('pruebas').upload(path,file,{upsert:true});
-  if(error){if(drop)drop.innerHTML='<div class="entrega-drop-label" style="color:var(--pink)">Error. Inténtalo de nuevo.</div>';return}
-  const{data:urlData}=dbCand.storage.from('pruebas').getPublicUrl(path);
+  const path=`${cand.id}/${Date.now()}_${file.name}`;
+  const{error}=await dbCand.storage.from('entregas').upload(path,file,{upsert:true});
+  if(error){if(drop)drop.innerHTML='<div class="entrega-drop-label" style="color:var(--pink)">Error. Try again.</div>';return}
+  const{data:urlData}=dbCand.storage.from('entregas').getPublicUrl(path);
   await dbCand.from('pruebas_tecnicas').update({entrega_url:urlData?.publicUrl,fecha_entrega:new Date().toISOString()}).eq('candidato_id',cand.id);
   await dbCand.from('candidatos').update({estado:'prueba_entregada',updated_at:new Date().toISOString()}).eq('id',cand.id);
   await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:'prueba_asignada',estado_nuevo:'prueba_entregada',cambiado_por:'sistema'});
