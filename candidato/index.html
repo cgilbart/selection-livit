@@ -529,7 +529,8 @@ async function autenticarConToken(token) {
 }
 
 async function cargarCandidato(token) {
-  const { data } = await dbCand.from('candidatos')
+  dbCand = db;
+  const { data } = await db.from('candidatos')
     .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
     .eq('magic_token', token).maybeSingle();
   if (!data) return;
@@ -550,8 +551,8 @@ async function verificarEmail() {
   const email = document.getElementById('email-input').value.trim().toLowerCase();
   if (!email) return;
   document.getElementById('email-error').style.display = 'none';
-
-  const { data } = await dbCand.from('candidatos')
+  dbCand = db;
+  const { data } = await db.from('candidatos')
     .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
     .eq('email', email).maybeSingle();
 
