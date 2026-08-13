@@ -574,6 +574,9 @@ td{padding:13px 16px;font-size:12px}
         <span style="opacity:.4">Sin completar</span>
       </div>
       <div class="disc-bars" id="m-disc-bars"></div>
+      <button id="m-disc-btn-informe" onclick="abrirInformeDisc()" style="display:none;margin-top:12px;width:100%;padding:8px;background:rgba(230,0,126,.1);color:var(--pink);border:1px solid rgba(230,0,126,.2);border-radius:8px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:all .15s">
+        Ver informe completo →
+      </button>
     </div>
 
     <hr class="divider">
@@ -776,6 +779,63 @@ td{padding:13px 16px;font-size:12px}
   </div>
 </div>
 
+<!-- INFORME DISC COMPLETO -->
+<div id="disc-informe-overlay" style="display:none;position:fixed;inset:0;z-index:300;background:var(--bg2);overflow-y:auto">
+  <div style="max-width:720px;margin:0 auto;padding:40px 32px 80px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--pink);margin-bottom:6px">Informe DISC</div>
+        <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--cream)" id="di-nombre">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px" id="di-vacante">—</div>
+      </div>
+      <button onclick="cerrarInformeDisc()" style="padding:8px 16px;background:var(--glass);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer">← Volver</button>
+    </div>
+
+    <!-- Perfil principal -->
+    <div style="background:rgba(230,0,126,.08);border:1px solid rgba(230,0,126,.2);border-radius:var(--radius);padding:24px;margin-bottom:24px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--pink);margin-bottom:8px">Perfil principal</div>
+      <div style="font-size:28px;font-weight:800;letter-spacing:-.8px;color:var(--cream);margin-bottom:6px" id="di-perfil-codigo">—</div>
+      <div style="font-size:13px;color:var(--muted);font-weight:600" id="di-perfil-tipo">—</div>
+    </div>
+
+    <!-- Barras DISC -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:16px">Puntuaciones</div>
+      <div id="di-bars" style="display:flex;flex-direction:column;gap:14px"></div>
+    </div>
+
+    <!-- Descripción del perfil -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px">Forma habitual de trabajar</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;font-weight:500" id="di-descripcion">—</div>
+    </div>
+
+    <!-- Aportaciones -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px">Posibles aportaciones al equipo</div>
+      <div id="di-aportaciones" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- Bajo presión -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px">Comportamiento potencial bajo presión</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;font-weight:500" id="di-presion">—</div>
+    </div>
+
+    <!-- Motivadores -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px">Motivadores profesionales probables</div>
+      <div id="di-motivadores" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+
+    <!-- Preguntas para la entrevista -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px">Preguntas sugeridas para la entrevista</div>
+      <div id="di-preguntas" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -792,6 +852,146 @@ const labels={
   prueba_entregada:'Prueba entregada',entrevista_tecnica:'Entrevista técnica',
   oferta:'Oferta',descartado:'Descartado'
 };
+
+function cerrarInformeDisc(){
+  document.getElementById('disc-informe-overlay').style.display='none';
+}
+
+const DISC_DATA={
+  D:{
+    nombre:'Dominancia',
+    descripcion:'Orientación directa a resultados y decisiones. Tiende a actuar con rapidez, asumir iniciativa y afrontar directamente los obstáculos.',
+    aportaciones:['Capacidad de decisión rápida','Iniciativa y autonomía','Orientación clara a resultados','Capacidad para afrontar conversaciones difíciles','Rapidez ante situaciones exigentes'],
+    presion:'Puede mostrar impaciencia, tomar decisiones con información insuficiente o centrarse tanto en el resultado que descuide el proceso y las personas.',
+    motivadores:['Autonomía','Retos','Responsabilidad','Resultados medibles','Capacidad de decisión'],
+    preguntas_alta:['Háblame de una decisión importante que tuviste que tomar con información limitada.','¿Cómo te aseguras de escuchar al equipo cuando tienes clara una solución?','Cuéntame una situación en la que tu enfoque directo generó resistencia.'],
+    preguntas_baja:['Cuéntame una situación en la que tuviste que defender firmemente una posición.','¿Cómo actúas cuando una decisión no puede aplazarse?','¿Cómo manejas una conversación difícil?']
+  },
+  I:{
+    nombre:'Influencia',
+    descripcion:'Facilidad para relacionarse, comunicar y motivar a otros. Transmite entusiasmo con naturalidad y genera adhesión alrededor de sus ideas.',
+    aportaciones:['Comunicación y persuasión naturales','Creación de relaciones con facilidad','Energía y entusiasmo contagioso','Capacidad para movilizar al equipo','Facilidad para presentar y vender ideas'],
+    presion:'Puede perder el foco, comprometerse con más de lo que puede asumir o hablar antes de escuchar completamente.',
+    motivadores:['Interacción frecuente','Visibilidad','Colaboración','Espacios para presentar ideas','Reconocimiento interpersonal'],
+    preguntas_alta:['¿Cómo aseguras el seguimiento de los compromisos después de una reunión?','Cuéntame una ocasión en la que tuviste que influir en una persona escéptica.','¿Cómo adaptas tu comunicación a alguien que necesita datos y detalle?'],
+    preguntas_baja:['¿Cómo construyes relaciones con nuevos interlocutores?','Cuéntame una situación en la que tuviste que presentar o defender una propuesta.','¿Cómo consigues apoyo cuando no tienes autoridad directa?']
+  },
+  S:{
+    nombre:'Estabilidad',
+    descripcion:'Paciencia, constancia y disposición para colaborar. Genera confianza por su fiabilidad y su capacidad de escucha activa en el equipo.',
+    aportaciones:['Fiabilidad y continuidad','Escucha activa genuina','Cooperación natural','Capacidad para mantener la calma','Seguimiento constante de las tareas'],
+    presion:'Puede evitar conflictos necesarios, tardar en expresar desacuerdo o mostrar resistencia ante cambios repentinos.',
+    motivadores:['Relaciones de confianza','Expectativas claras','Cambios explicados con anticipación','Ritmos previsibles','Colaboración estable'],
+    preguntas_alta:['Cuéntame cómo reaccionaste ante un cambio inesperado.','¿Cómo expresas desacuerdo cuando quieres preservar una buena relación?','¿Qué haces cuando el equipo necesita modificar rápidamente su forma de trabajar?'],
+    preguntas_baja:['¿Cómo mantienes la constancia en tareas prolongadas?','¿Qué haces para que otras personas puedan seguir tu ritmo?','Cuéntame una ocasión en la que tuviste que aportar estabilidad a un equipo.']
+  },
+  C:{
+    nombre:'Cumplimiento',
+    descripcion:'Análisis riguroso, atención al detalle y orientación a la calidad. Trabaja mejor cuando los criterios y estándares están claramente definidos.',
+    aportaciones:['Capacidad analítica y rigor','Precisión y atención al detalle','Organización y estructura','Control de riesgos','Mejora de procesos y estándares'],
+    presion:'Puede caer en el perfeccionismo, el exceso de análisis o la dificultad para decidir con información incompleta.',
+    motivadores:['Objetivos y estándares claros','Acceso a información suficiente','Tiempo para analizar','Procesos estructurados','Responsabilidades bien delimitadas'],
+    preguntas_alta:['Cuéntame una decisión que tuviste que tomar sin disponer de toda la información.','¿Cómo determinas cuándo un trabajo está suficientemente bien terminado?','¿Cómo reaccionas cuando los procedimientos son ambiguos?'],
+    preguntas_baja:['¿Cómo aseguras la calidad y evitas errores?','¿Qué herramientas utilizas para organizar información compleja?','Cuéntame una situación en la que un detalle cambió el resultado de tu trabajo.']
+  }
+};
+
+const PERFILES_COMBINADOS={
+  DI:'Perfil dinámico, directo y persuasivo. Tiende a movilizar a otras personas y avanzar rápidamente hacia los resultados.',
+  DS:'Perfil resolutivo y estable. Combina orientación a resultados con constancia y preocupación por la continuidad del equipo.',
+  DC:'Perfil exigente, analítico y orientado al control. Busca resultados sólidos y suele cuestionar errores o ineficiencias.',
+  ID:'Perfil comunicativo, emprendedor y orientado a la acción. Genera adhesión y transforma rápidamente las ideas en iniciativas.',
+  IS:'Perfil cercano, participativo y cooperativo. Genera relaciones de confianza y favorece la cohesión del equipo.',
+  IC:'Perfil comunicativo y estructurado. Combina persuasión con preparación, datos y atención a la calidad del mensaje.',
+  SD:'Perfil paciente pero firme cuando el objetivo está claro. Avanza con constancia y asume decisiones cuando son necesarias.',
+  SI:'Perfil colaborativo y sociable. Escucha, facilita la participación y mantiene un ambiente positivo.',
+  SC:'Perfil estable, metódico y fiable. Valora la continuidad, la calidad y el cumplimiento consistente de los procesos.',
+  CD:'Perfil preciso y resolutivo. Analiza antes de actuar, pero puede asumir decisiones firmes cuando dispone de criterios suficientes.',
+  CI:'Perfil analítico con capacidad de comunicación. Prepara cuidadosamente sus argumentos y explica información compleja con claridad.',
+  CS:'Perfil sistemático, paciente y orientado a la calidad. Prefiere trabajar con procesos estables y criterios claramente definidos.',
+};
+
+async function abrirInformeDisc(){
+  if(!actual)return;
+  const{data:disc}=await db.from('resultados_disc').select('*').eq('candidato_id',actual.id).maybeSingle();
+  if(!disc)return;
+
+  const overlay=document.getElementById('disc-informe-overlay');
+  overlay.style.display='block';
+  overlay.scrollTop=0;
+
+  // Header
+  document.getElementById('di-nombre').textContent=actual.nombre;
+  document.getElementById('di-vacante').textContent=actual.vacantes?.titulo||'Sin vacante asignada';
+
+  // Perfil
+  const primary=disc.perfil_principal;
+  const secondary=disc.perfil_secundario;
+  const codigo=disc.informe_html||`${primary}${secondary||''}`;
+  const tipoLabels={perfil_combinado:'Perfil combinado',principal_con_tendencia:'Perfil principal con tendencia',principal_definido:'Perfil claramente definido',equilibrado:'Perfil equilibrado'};
+  document.getElementById('di-perfil-codigo').textContent=`Perfil ${codigo}`;
+  document.getElementById('di-perfil-tipo').textContent=tipoLabels[disc.tipo_perfil]||disc.tipo_perfil||'';
+
+  // Barras
+  const scores={D:disc.puntuacion_d||0,I:disc.puntuacion_i||0,S:disc.puntuacion_s||0,C:disc.puntuacion_c||0};
+  const bandas=[{max:39,label:'Menos característico'},{max:59,label:'Situacional'},{max:74,label:'Característico'},{max:100,label:'Muy característico'}];
+  const getBanda=v=>bandas.find(b=>v<=b.max)?.label||'';
+  document.getElementById('di-bars').innerHTML=['D','I','S','C'].map(d=>{
+    const v=scores[d];
+    const color=d===primary?'var(--pink)':d===secondary?'rgba(230,0,126,.5)':'rgba(255,255,255,.15)';
+    return `<div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div>
+          <span style="font-size:12px;font-weight:800;color:var(--cream)">${d} — ${DISC_DATA[d].nombre}</span>
+          <span style="font-size:10px;color:var(--muted);margin-left:8px">${getBanda(v)}</span>
+        </div>
+        <span style="font-size:14px;font-weight:800;color:var(--cream)">${v}</span>
+      </div>
+      <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+        <div style="width:${v}%;height:100%;background:${color};border-radius:3px;transition:width .6s"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Descripción del perfil combinado
+  const claveCombo=`${primary}${secondary||''}`;
+  document.getElementById('di-descripcion').textContent=
+    PERFILES_COMBINADOS[claveCombo]||DISC_DATA[primary]?.descripcion||'—';
+
+  // Aportaciones (combinar primary + secondary)
+  const aports=[...DISC_DATA[primary]?.aportaciones||[],...(secondary&&secondary!==primary?DISC_DATA[secondary]?.aportaciones.slice(0,2)||[]:[])]
+    .slice(0,6);
+  document.getElementById('di-aportaciones').innerHTML=aports.map(a=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="width:6px;height:6px;border-radius:50%;background:var(--pink);flex-shrink:0"></span>
+      <span style="font-size:13px;color:var(--muted);font-weight:500">${a}</span>
+    </div>`).join('');
+
+  // Bajo presión
+  document.getElementById('di-presion').textContent=DISC_DATA[primary]?.presion||'—';
+
+  // Motivadores
+  const motivs=[...DISC_DATA[primary]?.motivadores||[],...(secondary&&secondary!==primary?DISC_DATA[secondary]?.motivadores.slice(0,2)||[]:[])]
+    .slice(0,6);
+  document.getElementById('di-motivadores').innerHTML=motivs.map(m=>`
+    <span style="padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:20px;font-size:11px;font-weight:700;color:var(--muted)">${m}</span>`).join('');
+
+  // Preguntas para entrevista
+  const puntuaciones=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const alta=puntuaciones[0][0];
+  const baja=puntuaciones[puntuaciones.length-1][0];
+  const pregsAlta=DISC_DATA[alta]?.preguntas_alta||[];
+  const pregsBaja=DISC_DATA[baja]?.preguntas_baja||[];
+  const todasPregs=[
+    ...pregsAlta.map(p=>({dim:alta,tipo:'alta',texto:p})),
+    ...pregsBaja.map(p=>({dim:baja,tipo:'baja',texto:p}))
+  ];
+  document.getElementById('di-preguntas').innerHTML=todasPregs.map(p=>`
+    <div style="padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px">
+      <div style="font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:${p.tipo==='alta'?'var(--pink)':'var(--blue)'};margin-bottom:5px">${p.dim} ${p.tipo==='alta'?'alta':'baja'}</div>
+      <div style="font-size:13px;color:var(--muted);font-weight:500;line-height:1.5">${p.texto}</div>
+    </div>`).join('');
+}
 
 async function loadBiblioteca(){
   const{data}=await db.from('candidatos').select('*,vacantes(titulo),resultados_disc(perfil_principal,perfil_secundario)').eq('estado','descartado').order('updated_at',{ascending:false});
@@ -1124,9 +1324,11 @@ async function abrirCandidato(id){
         <div class="disc-bar-bg"><div class="disc-bar-fill" style="width:${disc['puntuacion_'+d.toLowerCase()]||0}%"></div></div>
         <span class="disc-score">${disc['puntuacion_'+d.toLowerCase()]||0}</span>
       </div>`).join('');
+    document.getElementById('m-disc-btn-informe').style.display='block';
   } else {
     document.getElementById('m-disc-perfil').innerHTML='<span style="opacity:.4;font-size:12px;font-weight:600">Sin completar</span>';
     document.getElementById('m-disc-bars').innerHTML='';
+    document.getElementById('m-disc-btn-informe').style.display='none';
   }
 
   // Prueba
