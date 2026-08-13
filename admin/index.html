@@ -1473,7 +1473,8 @@ async function crearCandidato(){
   const vac=document.getElementById('n-vacante').value||null;
   if(!nombre||!email){toast_msg('Nombre y email son obligatorios');return}
   const token=crypto.randomUUID();
-  const{data:nuevo,error}=await db.from('candidatos').insert({nombre,email,telefono:tel||null,vacante_id:vac,estado:'preseleccionado',magic_token:token}).select().single();
+  const expires=new Date(Date.now() + 30*24*60*60*1000).toISOString();
+  const{data:nuevo,error}=await db.from('candidatos').insert({nombre,email,telefono:tel||null,vacante_id:vac,estado:'preseleccionado',magic_token:token,magic_token_expires_at:expires}).select().single();
   if(error){toast_msg(error.message.includes('unique')?'Este email ya existe':'Error al crear candidato');return}
   toast_msg('Candidato creado — copia su enlace de acceso desde la ficha');
   closeModal('modal-nuevo');

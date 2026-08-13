@@ -507,7 +507,8 @@ async function autenticarConToken(token) {
     });
     const data = await res.json();
     if (!data.jwt) {
-      document.getElementById('intro-body').textContent = "We couldn't find your process. Contact the Livit team.";
+      const msg = data.error || "We couldn't find your process. Contact the Livit team.";
+      document.getElementById('intro-body').textContent = msg;
       document.querySelector('.btn-primary').style.display = 'none';
       return;
     }
@@ -1091,7 +1092,7 @@ async function verificarEmail() {
   if (!email) return;
   document.getElementById('email-error').style.display = 'none';
 
-  const { data } = await db.from('candidatos')
+  const { data } = await dbCand.from('candidatos')
     .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
     .eq('email', email).maybeSingle();
 
@@ -1145,9 +1146,9 @@ async function calcDisc(){
   const allDiff=sorted[0][1]-sorted[sorted.length-1][1];
   const tipo=allDiff<=10?'equilibrado':diff>=15?'principal_definido':diff>=8?'principal_con_tendencia':'perfil_combinado';
   const codigo=tipo==='equilibrado'?'DISC':diff<=7?`${primary}${secondary}`:`${primary}(${secondary})`;
-  await db.from('resultados_disc').insert({candidato_id:cand.id,respuestas:discR,puntuacion_d:sc.D,puntuacion_i:sc.I,puntuacion_s:sc.S,puntuacion_c:sc.C,perfil_principal:primary,perfil_secundario:secondary,tipo_perfil:tipo,informe_html:codigo});
-  await db.from('candidatos').update({estado:'tests_completados',updated_at:new Date().toISOString()}).eq('id',cand.id);
-  await db.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:cand.estado,estado_nuevo:'tests_completados',cambiado_por:'sistema'});
+  await dbCand.from('resultados_disc').insert({candidato_id:cand.id,respuestas:discR,puntuacion_d:sc.D,puntuacion_i:sc.I,puntuacion_s:sc.S,puntuacion_c:sc.C,perfil_principal:primary,perfil_secundario:secondary,tipo_perfil:tipo,informe_html:codigo});
+  await dbCand.from('candidatos').update({estado:'tests_completados',updated_at:new Date().toISOString()}).eq('id',cand.id);
+  await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:cand.estado,estado_nuevo:'tests_completados',cambiado_por:'sistema'});
   cand.estado='tests_completados';
   renderDash();showSlide('slide-dash');scrollToSlide('slide-dash');
 }
@@ -1190,7 +1191,7 @@ async function descargarEnunciado(){
   const url=window._enunciadoUrl;
   const path=url.includes('/object/public/pruebas/')?decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]):null;
   if(path){
-    const{data}=await db.storage.from('pruebas').createSignedUrl(path,3600);
+    const{data}=await dbCand.storage.from('pruebas').createSignedUrl(path,3600);
     if(data?.signedUrl)window.open(data.signedUrl,'_blank');
   } else {
     window.open(url,'_blank');
@@ -1202,12 +1203,12 @@ async function subirEntrega(file){
   const drop=document.querySelector('.entrega-drop');
   if(drop)drop.innerHTML='<div class="entrega-drop-label">Subiendo...</div>';
   const path=`entregas/${cand.id}/${Date.now()}_${file.name}`;
-  const{error}=await db.storage.from('pruebas').upload(path,file,{upsert:true});
+  const{error}=await dbCand.storage.from('pruebas').upload(path,file,{upsert:true});
   if(error){if(drop)drop.innerHTML='<div class="entrega-drop-label" style="color:var(--pink)">Error. Inténtalo de nuevo.</div>';return}
-  const{data:urlData}=db.storage.from('pruebas').getPublicUrl(path);
-  await db.from('pruebas_tecnicas').update({entrega_url:urlData?.publicUrl,fecha_entrega:new Date().toISOString()}).eq('candidato_id',cand.id);
-  await db.from('candidatos').update({estado:'prueba_entregada',updated_at:new Date().toISOString()}).eq('id',cand.id);
-  await db.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:'prueba_asignada',estado_nuevo:'prueba_entregada',cambiado_por:'sistema'});
+  const{data:urlData}=dbCand.storage.from('pruebas').getPublicUrl(path);
+  await dbCand.from('pruebas_tecnicas').update({entrega_url:urlData?.publicUrl,fecha_entrega:new Date().toISOString()}).eq('candidato_id',cand.id);
+  await dbCand.from('candidatos').update({estado:'prueba_entregada',updated_at:new Date().toISOString()}).eq('id',cand.id);
+  await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:'prueba_asignada',estado_nuevo:'prueba_entregada',cambiado_por:'sistema'});
   document.getElementById('entrega-pendiente').style.display='none';
   document.getElementById('entrega-ok').style.display='flex';
 }
