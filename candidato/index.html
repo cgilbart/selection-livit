@@ -272,9 +272,6 @@ body{font-family:var(--font);overflow:hidden}
     <div class="headline">Confirm<br>your <em>email.</em></div>
     <div class="body-text">Enter the email address associated with your selection process.</div>
     <input class="email-input" type="email" id="email-input" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')verificarEmail()">
-    <div id="otp-wrap" style="display:none">
-      <input class="email-input" type="text" id="otp-input" placeholder="000000" maxlength="6" style="letter-spacing:8px;font-size:24px;text-align:center" onkeydown="if(event.key==='Enter')confirmarOTP()">
-    </div>
     <div class="email-hint" id="email-hint">We just need to verify it's you.</div>
     <div class="email-error" id="email-error">We couldn't find an active process with that email.</div>
     <button class="btn-primary" id="email-btn" onclick="verificarEmail()">Continue →</button>
@@ -481,94 +478,73 @@ const FASES=[
 
 // ── AUTH STATE ────────────────────────────────────
 window.addEventListener('load', async () => {
-  // 1. Comprobar si viene de un magic link (hash en la URL)
-  const hash = window.location.hash;
-  if (hash && hash.includes('access_token')) {
-    const { data: { session } } = await db.auth.getSession();
-    if (session) {
-      await cargarCandidatoAutenticado(session.user.email);
-      return;
-    }
-  }
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
 
-  // 2. Comprobar si ya hay sesión activa
-  const { data: { session } } = await db.auth.getSession();
-  if (session) {
-    await cargarCandidatoAutenticado(session.user.email);
+  if (token) {
+    // Viene con magic link — buscar candidato por token
+    const { data } = await db.from('candidatos')
+      .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
+      .eq('magic_token', token).maybeSingle();
+    if (data) {
+      cand = data;
+      // Guardar email en sessionStorage para vueltas sin token
+      sessionStorage.setItem('cand_email', data.email);
+      document.getElementById('intro-nombre').textContent = data.nombre?.split(' ')[0] || '';
+      if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(data.estado)) {
+        renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
+        if (['prueba_asignada','prueba_entregada'].includes(data.estado)) showSlide('slide-prueba');
+      }
+    }
     return;
   }
 
-  // 3. Sin sesión — mostrar pantalla de verificación de email
-  // (el vídeo ya está visible por defecto)
-});
-
-async function cargarCandidatoAutenticado(email) {
-  const { data } = await db.from('candidatos')
-    .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
-    .eq('email', email).maybeSingle();
-  if (!data) return;
-  cand = data;
-  document.getElementById('intro-nombre').textContent = cand.nombre?.split(' ')[0] || '';
-  if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(cand.estado)) {
-    renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
-    if (['prueba_asignada','prueba_entregada'].includes(cand.estado)) showSlide('slide-prueba');
-  } else {
-    showSlide('slide-disc-intro'); scrollToSlide('slide-disc-intro');
+  // Sin token — comprobar sesión guardada
+  const savedEmail = sessionStorage.getItem('cand_email');
+  if (savedEmail) {
+    const { data } = await db.from('candidatos')
+      .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
+      .eq('email', savedEmail).maybeSingle();
+    if (data) {
+      cand = data;
+      document.getElementById('intro-nombre').textContent = data.nombre?.split(' ')[0] || '';
+      if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(data.estado)) {
+        renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
+        if (['prueba_asignada','prueba_entregada'].includes(data.estado)) showSlide('slide-prueba');
+      }
+    }
   }
-}
+});
 
 function scrollNext(){document.getElementById('slides').scrollBy({top:window.innerHeight,behavior:'smooth'})}
 function showSlide(id){const el=document.getElementById(id);if(el)el.style.display='flex'}
 function scrollToSlide(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth'})}
 
-// ── VERIFICAR EMAIL (OTP) ─────────────────────────
-let otpEnviado = false;
-
+// ── VERIFICAR EMAIL ───────────────────────────────
 async function verificarEmail() {
   const email = document.getElementById('email-input').value.trim().toLowerCase();
   if (!email) return;
   document.getElementById('email-error').style.display = 'none';
 
-  if (!otpEnviado) {
-    // Comprobar que el email existe en candidatos
-    const { data } = await db.from('candidatos').select('id').eq('email', email).maybeSingle();
-    if (!data) {
-      document.getElementById('email-error').style.display = 'block';
-      return;
-    }
-    // Enviar OTP
-    const { error } = await db.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false }
-    });
-    if (error) {
-      document.getElementById('email-error').textContent = 'Error sending the code. Please try again.';
-      document.getElementById('email-error').style.display = 'block';
-      return;
-    }
-    otpEnviado = true;
-    // Mostrar campo OTP
-    document.getElementById('email-input').style.display = 'none';
-    document.getElementById('otp-wrap').style.display = 'block';
-    document.getElementById('email-hint').textContent = `Hemos enviado un código de 6 dígitos a ${email}.`;
-    document.getElementById('email-btn').textContent = 'Confirmar código →';
-    document.getElementById('email-btn').onclick = confirmarOTP;
-  }
-}
+  const { data } = await db.from('candidatos')
+    .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
+    .eq('email', email).maybeSingle();
 
-async function confirmarOTP() {
-  const email = document.getElementById('email-input').value.trim().toLowerCase();
-  const otp = document.getElementById('otp-input').value.trim();
-  if (!otp || otp.length !== 6) return;
-  document.getElementById('email-error').style.display = 'none';
-
-  const { error } = await db.auth.verifyOtp({ email, token: otp, type: 'email' });
-  if (error) {
-    document.getElementById('email-error').textContent = 'Incorrect or expired code.';
+  if (!data) {
     document.getElementById('email-error').style.display = 'block';
     return;
   }
-  await cargarCandidatoAutenticado(email);
+
+  cand = data;
+  sessionStorage.setItem('cand_email', email);
+  document.getElementById('intro-nombre').textContent = data.nombre?.split(' ')[0] || '';
+
+  if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(data.estado)) {
+    renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
+    if (['prueba_asignada','prueba_entregada'].includes(data.estado)) showSlide('slide-prueba');
+  } else {
+    showSlide('slide-disc-intro'); scrollToSlide('slide-disc-intro');
+  }
 }
 
 function iniciarDisc(){discIdx=0;discR={};showSlide('slide-disc');scrollToSlide('slide-disc');renderDisc()}
