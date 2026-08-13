@@ -477,44 +477,609 @@ const FASES=[
 ];
 
 // ── AUTH STATE ────────────────────────────────────
+let dbCand = null; // cliente Supabase con JWT del candidato
+
 window.addEventListener('load', async () => {
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
+  const savedToken = sessionStorage.getItem('cand_token');
+  const savedJwt = sessionStorage.getItem('cand_jwt');
 
   if (token) {
-    // Viene con magic link — buscar candidato por token
-    const { data } = await db.from('candidatos')
-      .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
-      .eq('magic_token', token).maybeSingle();
-    if (data) {
-      cand = data;
-      // Guardar email en sessionStorage para vueltas sin token
-      sessionStorage.setItem('cand_email', data.email);
-      document.getElementById('intro-nombre').textContent = data.nombre?.split(' ')[0] || '';
-      if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(data.estado)) {
-        renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
-        if (['prueba_asignada','prueba_entregada'].includes(data.estado)) showSlide('slide-prueba');
-      }
-    }
-    return;
+    // Intercambiar magic token por JWT
+    await autenticarConToken(token);
+  } else if (savedToken && savedJwt) {
+    // Restaurar sesión guardada
+    dbCand = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      global: { headers: { Authorization: `Bearer ${savedJwt}` } }
+    });
+    await cargarCandidato(savedToken);
   }
-
-  // Sin token — comprobar sesión guardada
-  const savedEmail = sessionStorage.getItem('cand_email');
-  if (savedEmail) {
-    const { data } = await db.from('candidatos')
-      .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
-      .eq('email', savedEmail).maybeSingle();
-    if (data) {
-      cand = data;
-      document.getElementById('intro-nombre').textContent = data.nombre?.split(' ')[0] || '';
-      if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(data.estado)) {
-        renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
-        if (['prueba_asignada','prueba_entregada'].includes(data.estado)) showSlide('slide-prueba');
-      }
-    }
-  }
+  // Sin token ni sesión — el vídeo está visible, el candidato desliza y pone su email
 });
+
+async function autenticarConToken(token) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/auth-candidato`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const data = await res.json();
+    if (!data.jwt) {
+      document.getElementById('intro-body').textContent = "We couldn't find your process. Contact the Livit team.";
+      document.querySelector('.btn-primary').style.display = 'none';
+      return;
+    }
+    // Guardar JWT y token en sesión
+    sessionStorage.setItem('cand_jwt', data.jwt);
+    sessionStorage.setItem('cand_token', token);
+    // Crear cliente Supabase con JWT
+    dbCand = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      global: { headers: { Authorization: `Bearer ${data.jwt}` } }
+    });
+    cand = data.candidato;
+    document.getElementById('intro-nombre').textContent = cand.nombre?.split(' ')[0] || '';
+    if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(cand.estado)) {
+      await renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
+      if (['prueba_asignada','prueba_entregada'].includes(cand.estado)) showSlide('slide-prueba');
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+async function cargarCandidato(token) {
+  const { data } = await dbCand.from('candidatos')
+    .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
+    .eq('magic_token', token).maybeSingle();
+  if (!data) return;
+  cand = data;
+  document.getElementById('intro-nombre').textContent = cand.nombre?.split(' ')[0] || '';
+  if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(cand.estado)) {
+    await renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
+    if (['prueba_asignada','prueba_entregada'].includes(cand.estado)) showSlide('slide-prueba');
+  }
+}
+
+function scrollNext(){document.getElementById('slides').scrollBy({top:window.innerHeight,behavior:'smooth'})}
+function showSlide(id){const el=document.getElementById(id);if(el)el.style.display='flex'}
+function scrollToSlide(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth'})}
+
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#1A1916;--cream:#F2EDE6;--pink:#E6007E;
+  --muted:#8A8680;--faint:#C8C3BC;
+  --font:'Manrope',sans-serif;
+}
+html,body{height:100%;background:var(--black)}
+body{font-family:var(--font);overflow:hidden}
+
+.slides{height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none}
+.slides::-webkit-scrollbar{display:none}
+
+.slide{
+  height:100vh;width:100%;scroll-snap-align:start;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:28px 28px 36px;position:relative;overflow:hidden;flex-shrink:0;
+}
+.slide-dark{background:var(--black);color:var(--cream)}
+.slide-light{background:var(--cream);color:var(--black)}
+.slide-photo{background:var(--black);color:var(--cream)}
+
+.slide-top{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;
+}
+.slide-top-logo{color:inherit;opacity:.5;display:flex;align-items:center}
+.slide-top-tag{color:inherit;opacity:.4}
+
+.slide-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding-top:24px}
+.slide-bottom{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:16px;border-top:1px solid rgba(242,237,230,.08);
+  margin-top:16px;
+}
+.slide-light .slide-bottom{border-top-color:rgba(26,25,22,.08)}
+.slide-bottom-meta{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.3}
+
+.eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--pink);margin-bottom:16px}
+.eyebrow-muted{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.35;margin-bottom:16px}
+.headline{font-size:clamp(34px,10vw,52px);font-weight:900;line-height:1.0;letter-spacing:-1.5px;margin-bottom:20px}
+.headline em{color:var(--pink);font-style:normal;display:block}
+.body-text{font-size:14px;line-height:1.7;font-weight:500;max-width:380px;opacity:.6;margin-bottom:24px}
+
+/* FOTO SLIDE */
+.bg-photo{position:absolute;inset:0;object-fit:cover;width:100%;height:100%;opacity:.45}
+.bg-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(26,25,22,1) 0%,rgba(26,25,22,.3) 50%,rgba(26,25,22,.6) 100%)}
+.slide-photo .slide-top,.slide-photo .slide-body,.slide-photo .slide-bottom{position:relative;z-index:2}
+
+/* SCROLL HINT */
+.scroll-hint{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:16px}
+.scroll-hint-text{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(242,237,230,.3)}
+.scroll-arrow{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(242,237,230,.2);border-radius:50%;animation:bounceDown 2s ease infinite}
+.scroll-arrow svg{width:12px;height:12px}
+@keyframes bounceDown{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(4px);opacity:.8}}
+
+/* BOTONES */
+.btn-primary{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 24px;background:var(--pink);color:#fff;
+  border:none;cursor:pointer;border-radius:2px;
+  font-family:var(--font);font-size:12px;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;
+}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+.btn-dark{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 24px;background:var(--black);color:var(--cream);
+  border:none;cursor:pointer;border-radius:2px;
+  font-family:var(--font);font-size:12px;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;
+}
+.btn-dark:hover{background:var(--pink);color:#fff}
+.btn-ghost-dark{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 24px;background:transparent;
+  border:1.5px solid rgba(242,237,230,.15);color:rgba(242,237,230,.5);
+  cursor:pointer;border-radius:2px;
+  font-family:var(--font);font-size:12px;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;transition:all .2s;
+}
+.btn-ghost-dark:hover{border-color:rgba(242,237,230,.4);color:var(--cream)}
+.btn-outline-light{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:12px 20px;background:transparent;
+  border:1.5px solid rgba(26,25,22,.15);color:rgba(26,25,22,.5);
+  cursor:pointer;border-radius:2px;
+  font-family:var(--font);font-size:11px;font-weight:700;
+  letter-spacing:1.2px;text-transform:uppercase;transition:all .2s;
+}
+.btn-outline-light:hover{border-color:var(--black);color:var(--black)}
+.btn-stack{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+
+/* EMAIL VERIFY */
+.email-input{
+  width:100%;padding:14px 0;
+  background:transparent;border:none;border-bottom:2px solid rgba(242,237,230,.2);
+  font-family:var(--font);font-size:18px;font-weight:700;
+  color:var(--cream);outline:none;transition:border-color .2s;
+  margin-bottom:4px;
+}
+.email-input::placeholder{color:rgba(242,237,230,.2);font-weight:400}
+.email-input:focus{border-bottom-color:rgba(242,237,230,.6)}
+.email-hint{font-size:11px;color:rgba(242,237,230,.3);font-weight:600;margin-bottom:24px;line-height:1.5}
+.email-error{font-size:12px;color:var(--pink);font-weight:700;margin-top:8px;display:none}
+
+/* DISC */
+.disc-bar-wrap{height:2px;background:rgba(242,237,230,.08);border-radius:1px;margin-bottom:28px;overflow:hidden}
+.disc-bar{height:100%;background:var(--pink);transition:width .4s}
+.disc-q{font-size:clamp(20px,6vw,30px);font-weight:900;line-height:1.1;letter-spacing:-1px;margin-bottom:28px}
+.disc-opts{display:flex;flex-direction:column;gap:3px}
+.disc-opt{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border:1px solid rgba(242,237,230,.07);
+  cursor:pointer;transition:all .15s;background:rgba(242,237,230,.02);border-radius:2px;
+}
+.disc-opt:hover{background:rgba(242,237,230,.07);border-color:rgba(242,237,230,.2)}
+.disc-opt.sel{background:var(--pink);border-color:var(--pink)}
+.disc-opt.sel .disc-opt-txt{color:#fff}
+.disc-opt.sel .disc-opt-n{color:rgba(255,255,255,.4)}
+.disc-opt-txt{font-size:13px;font-weight:600;color:rgba(242,237,230,.5);transition:color .15s}
+.disc-opt:hover .disc-opt-txt{color:var(--cream)}
+.disc-opt-n{font-size:18px;font-weight:900;color:rgba(242,237,230,.12)}
+.disc-nav{display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:20px;border-top:1px solid rgba(242,237,230,.07)}
+.disc-back{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(242,237,230,.3);background:none;border:none;cursor:pointer;padding:8px 0;transition:color .15s}
+.disc-back:hover{color:rgba(242,237,230,.6)}
+.disc-fwd{
+  padding:12px 22px;background:var(--cream);color:var(--black);
+  border:none;cursor:pointer;border-radius:2px;
+  font-family:var(--font);font-size:11px;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;transition:all .18s;
+}
+.disc-fwd:hover{background:var(--pink);color:#fff}
+.disc-fwd:disabled{opacity:.2;pointer-events:none}
+
+/* DASHBOARD */
+.estado-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:2px;margin-bottom:20px;
+}
+.estado-pill.wait{background:rgba(242,237,230,.06);border:1px solid rgba(242,237,230,.1)}
+.estado-pill.go{background:rgba(230,0,126,.12);border:1px solid rgba(230,0,126,.2)}
+.estado-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.wait .estado-dot{background:var(--faint)}
+.go .estado-dot{background:var(--pink);box-shadow:0 0 0 3px rgba(230,0,126,.2);animation:pulso 2s infinite}
+@keyframes pulso{0%,100%{box-shadow:0 0 0 3px rgba(230,0,126,.2)}50%{box-shadow:0 0 0 5px rgba(230,0,126,.1)}}
+.estado-pill-text{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.wait .estado-pill-text{color:var(--faint)}
+.go .estado-pill-text{color:var(--pink)}
+
+.fases{display:flex;flex-direction:column}
+.fase{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(242,237,230,.07)}
+.fase:first-child{border-top:1px solid rgba(242,237,230,.07)}
+.fase-n{font-size:10px;font-weight:800;width:20px;flex-shrink:0;color:rgba(242,237,230,.2)}
+.fase-n.done{color:var(--pink)}
+.fase-n.active{color:var(--cream)}
+.fase-label{font-size:13px;font-weight:600;flex:1;color:rgba(242,237,230,.25)}
+.fase-label.done,.fase-label.active{color:var(--cream)}
+.fase-badge{font-size:10px;font-weight:800;color:var(--pink);letter-spacing:.5px}
+
+/* DATOS OPCIONALES */
+.datos-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.dato-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border:1px solid rgba(242,237,230,.08);border-radius:2px;
+  background:rgba(242,237,230,.02);
+}
+.dato-info{display:flex;flex-direction:column;gap:2px}
+.dato-label{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(242,237,230,.3)}
+.dato-value{font-size:13px;font-weight:600;color:rgba(242,237,230,.6)}
+.dato-edit-btn{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(242,237,230,.3);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s;flex-shrink:0}
+.dato-edit-btn:hover{color:var(--cream)}
+
+/* INLINE EDIT */
+.inline-edit{display:none;margin-top:-2px}
+.inline-edit.open{display:block}
+.inline-input{
+  width:100%;padding:10px 0;background:transparent;
+  border:none;border-bottom:1.5px solid rgba(242,237,230,.25);
+  font-family:var(--font);font-size:15px;font-weight:600;
+  color:var(--cream);outline:none;
+}
+.inline-input::placeholder{color:rgba(242,237,230,.2);font-weight:400}
+.inline-save{margin-top:10px;padding:8px 16px;background:var(--cream);color:var(--black);border:none;cursor:pointer;border-radius:2px;font-family:var(--font);font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase}
+
+/* PRUEBA */
+.prueba-card{
+  border:1px solid rgba(242,237,230,.1);border-radius:2px;
+  padding:18px;margin-bottom:12px;background:rgba(242,237,230,.03);
+}
+.prueba-tag{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--pink);margin-bottom:8px}
+.prueba-nombre{font-size:18px;font-weight:900;letter-spacing:-.5px;color:var(--cream);margin-bottom:4px}
+.prueba-desc{font-size:12px;color:rgba(242,237,230,.4);line-height:1.5;margin-bottom:16px}
+.entrega-drop{
+  border:1.5px dashed rgba(242,237,230,.15);border-radius:2px;
+  padding:20px;text-align:center;cursor:pointer;transition:all .18s;margin-top:12px;
+}
+.entrega-drop:hover{border-color:var(--pink);background:rgba(230,0,126,.04)}
+.entrega-drop-label{font-size:12px;font-weight:700;color:rgba(242,237,230,.4);margin-top:6px}
+.entrega-ok{display:flex;align-items:center;gap:10px;padding:14px 16px;background:rgba(74,200,130,.08);border:1px solid rgba(74,200,130,.2);border-radius:2px;margin-top:12px}
+.entrega-ok-text{font-size:13px;font-weight:700;color:#4AC882}
+</style>
+</head>
+<body>
+
+<div class="slides" id="slides">
+
+<!-- ══ SLIDE 0 — PORTADA VÍDEO ══ -->
+<div class="slide slide-photo">
+  <video class="bg-photo" autoplay muted playsinline loop>
+    <source src="https://tdotlurmytvcdgmlmecc.supabase.co/storage/v1/object/public/media/livit___video_corporativo%20(540p).mp4" type="video/mp4">
+  </video>
+  <div class="bg-overlay"></div>
+  <div class="slide-top">
+    <span class="slide-top-logo"><svg height="18" viewBox="0 0 2000 889" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+<path d="M510.352 0H304.334V197.401H510.352V0Z" fill="currentColor"/>
+<path d="M203.377 0H0V888.249H203.377V0Z" fill="currentColor"/>
+<path d="M509.022 296.661H305.625V888.268H509.022V296.661Z" fill="currentColor"/>
+<path d="M1547.11 296.661H1343.74V888.268H1547.11V296.661Z" fill="currentColor"/>
+<path d="M1852.78 493.465H2000V296.661H1852.78V0H1649.4V888.249H1852.78V493.465Z" fill="currentColor"/>
+<path d="M1152.91 592.166L1270.04 296.661H1050.53L931.276 592.166H1152.91Z" fill="currentColor"/>
+<path d="M800.922 296.661H581.409L816.517 888.249H1040.25L800.922 296.661Z" fill="currentColor"/>
+<path d="M1548.44 0H1342.41V197.401H1548.44V0Z" fill="currentColor"/>
+</svg></span>
+    <span class="slide-top-tag">Selection</span>
+  </div>
+  <div class="slide-body">
+    <div class="eyebrow">Selection process</div>
+    <div class="headline">We're glad<br>you're<br><em>here.</em></div>
+    <div class="body-text" id="intro-body">When you're ready, swipe to begin.</div>
+    <button class="btn-primary" onclick="scrollNext()">Begin →</button>
+    <div class="scroll-hint">
+      <span class="scroll-hint-text">Or swipe at any time</span>
+      <div class="scroll-arrow">
+        <svg fill="none" stroke="rgba(242,237,230,.5)" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+  </div>
+  <div class="slide-bottom">
+    <span class="slide-bottom-meta" id="intro-nombre"></span>
+    <span class="slide-bottom-meta">01</span>
+  </div>
+</div>
+
+<!-- ══ SLIDE 1 — VERIFICAR EMAIL ══ -->
+<div class="slide slide-dark">
+  <div class="slide-top">
+    <span class="slide-top-logo"><svg height="18" viewBox="0 0 2000 889" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+<path d="M510.352 0H304.334V197.401H510.352V0Z" fill="currentColor"/>
+<path d="M203.377 0H0V888.249H203.377V0Z" fill="currentColor"/>
+<path d="M509.022 296.661H305.625V888.268H509.022V296.661Z" fill="currentColor"/>
+<path d="M1547.11 296.661H1343.74V888.268H1547.11V296.661Z" fill="currentColor"/>
+<path d="M1852.78 493.465H2000V296.661H1852.78V0H1649.4V888.249H1852.78V493.465Z" fill="currentColor"/>
+<path d="M1152.91 592.166L1270.04 296.661H1050.53L931.276 592.166H1152.91Z" fill="currentColor"/>
+<path d="M800.922 296.661H581.409L816.517 888.249H1040.25L800.922 296.661Z" fill="currentColor"/>
+<path d="M1548.44 0H1342.41V197.401H1548.44V0Z" fill="currentColor"/>
+</svg></span>
+    <span class="slide-top-tag">Access</span>
+  </div>
+  <div class="slide-body">
+    <div class="eyebrow">One quick step</div>
+    <div class="headline">Confirm<br>your <em>email.</em></div>
+    <div class="body-text">Enter the email address associated with your selection process.</div>
+    <input class="email-input" type="email" id="email-input" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')verificarEmail()">
+    <div class="email-hint" id="email-hint">We just need to verify it's you.</div>
+    <div class="email-error" id="email-error">We couldn't find an active process with that email.</div>
+    <button class="btn-primary" id="email-btn" onclick="verificarEmail()">Continue →</button>
+  </div>
+  <div class="slide-bottom">
+    <span class="slide-bottom-meta"></span>
+    <span class="slide-bottom-meta">02</span>
+  </div>
+</div>
+
+<!-- ══ SLIDE 2 — DISC INTRO ══ -->
+<div class="slide slide-dark" id="slide-disc-intro" style="display:none">
+  <div class="slide-top">
+    <span class="slide-top-logo"><svg height="18" viewBox="0 0 2000 889" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+<path d="M510.352 0H304.334V197.401H510.352V0Z" fill="currentColor"/>
+<path d="M203.377 0H0V888.249H203.377V0Z" fill="currentColor"/>
+<path d="M509.022 296.661H305.625V888.268H509.022V296.661Z" fill="currentColor"/>
+<path d="M1547.11 296.661H1343.74V888.268H1547.11V296.661Z" fill="currentColor"/>
+<path d="M1852.78 493.465H2000V296.661H1852.78V0H1649.4V888.249H1852.78V493.465Z" fill="currentColor"/>
+<path d="M1152.91 592.166L1270.04 296.661H1050.53L931.276 592.166H1152.91Z" fill="currentColor"/>
+<path d="M800.922 296.661H581.409L816.517 888.249H1040.25L800.922 296.661Z" fill="currentColor"/>
+<path d="M1548.44 0H1342.41V197.401H1548.44V0Z" fill="currentColor"/>
+</svg></span>
+    <span class="slide-top-tag">Questionnaire</span>
+  </div>
+  <div class="slide-body">
+    <div class="eyebrow">Questionnaire conductual</div>
+    <div class="headline">24 questions.<br>No wrong<br><em>answers.</em></div>
+    <div class="body-text">Answer based on how you normally behave at work — not how you think you should. Estimated time: 5 minutes.</div>
+    <button class="btn-primary" onclick="iniciarDisc()">Start →</button>
+  </div>
+  <div class="slide-bottom">
+    <span class="slide-bottom-meta"></span>
+    <span class="slide-bottom-meta">03</span>
+  </div>
+</div>
+
+<!-- ══ SLIDE 3 — DISC PREGUNTAS ══ -->
+<div class="slide slide-dark" id="slide-disc" style="display:none">
+  <div class="slide-top">
+    <span class="slide-top-logo"><svg height="18" viewBox="0 0 2000 889" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+<path d="M510.352 0H304.334V197.401H510.352V0Z" fill="currentColor"/>
+<path d="M203.377 0H0V888.249H203.377V0Z" fill="currentColor"/>
+<path d="M509.022 296.661H305.625V888.268H509.022V296.661Z" fill="currentColor"/>
+<path d="M1547.11 296.661H1343.74V888.268H1547.11V296.661Z" fill="currentColor"/>
+<path d="M1852.78 493.465H2000V296.661H1852.78V0H1649.4V888.249H1852.78V493.465Z" fill="currentColor"/>
+<path d="M1152.91 592.166L1270.04 296.661H1050.53L931.276 592.166H1152.91Z" fill="currentColor"/>
+<path d="M800.922 296.661H581.409L816.517 888.249H1040.25L800.922 296.661Z" fill="currentColor"/>
+<path d="M1548.44 0H1342.41V197.401H1548.44V0Z" fill="currentColor"/>
+</svg></span>
+    <span class="slide-top-tag" id="disc-tag">1 / 24</span>
+  </div>
+  <div class="slide-body" style="justify-content:flex-start;padding-top:16px;overflow-y:auto">
+    <div class="disc-bar-wrap">
+      <div class="disc-bar" id="disc-bar" style="width:0%"></div>
+    </div>
+    <div class="disc-q" id="disc-q">—</div>
+    <div class="disc-opts" id="disc-opts"></div>
+    <div class="disc-nav">
+      <button class="disc-back" onclick="discBack()" id="disc-back">← Back</button>
+      <button class="disc-fwd" onclick="discFwd()" id="disc-fwd" disabled>Next →</button>
+    </div>
+  </div>
+  <div class="slide-bottom">
+    <span class="slide-bottom-meta"></span>
+    <span class="slide-bottom-meta">04</span>
+  </div>
+</div>
+
+<!-- ══ SLIDE 4 — DASHBOARD ══ -->
+<div class="slide slide-dark" id="slide-dash" style="display:none">
+  <div class="slide-top">
+    <span class="slide-top-logo"><svg height="18" viewBox="0 0 2000 889" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+<path d="M510.352 0H304.334V197.401H510.352V0Z" fill="currentColor"/>
+<path d="M203.377 0H0V888.249H203.377V0Z" fill="currentColor"/>
+<path d="M509.022 296.661H305.625V888.268H509.022V296.661Z" fill="currentColor"/>
+<path d="M1547.11 296.661H1343.74V888.268H1547.11V296.661Z" fill="currentColor"/>
+<path d="M1852.78 493.465H2000V296.661H1852.78V0H1649.4V888.249H1852.78V493.465Z" fill="currentColor"/>
+<path d="M1152.91 592.166L1270.04 296.661H1050.53L931.276 592.166H1152.91Z" fill="currentColor"/>
+<path d="M800.922 296.661H581.409L816.517 888.249H1040.25L800.922 296.661Z" fill="currentColor"/>
+<path d="M1548.44 0H1342.41V197.401H1548.44V0Z" fill="currentColor"/>
+</svg></span>
+    <span class="slide-top-tag">Your process</span>
+  </div>
+  <div class="slide-body" style="justify-content:flex-start;padding-top:12px;overflow-y:auto">
+    <div class="headline" style="font-size:clamp(26px,8vw,40px);margin-bottom:6px">Hello,<br><em id="dash-nombre">—</em></div>
+    <div class="body-text" id="dash-sub" style="margin-bottom:16px">Here you can follow your application at Livit.</div>
+
+    <div class="estado-pill wait" id="estado-pill">
+      <div class="estado-dot"></div>
+      <div class="estado-pill-text" id="estado-text">—</div>
+    </div>
+
+    <div class="fases" id="fases" style="margin-bottom:20px"></div>
+
+
+  </div>
+  <div class="slide-bottom">
+    <span class="slide-bottom-meta" id="dash-vacante"></span>
+    <span class="slide-bottom-meta">05</span>
+  </div>
+</div>
+
+<!-- ══ SLIDE 5 — PRUEBA TÉCNICA ══ -->
+<div class="slide slide-dark" id="slide-prueba" style="display:none">
+  <div class="slide-top">
+    <span class="slide-top-logo"><svg height="18" viewBox="0 0 2000 889" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+<path d="M510.352 0H304.334V197.401H510.352V0Z" fill="currentColor"/>
+<path d="M203.377 0H0V888.249H203.377V0Z" fill="currentColor"/>
+<path d="M509.022 296.661H305.625V888.268H509.022V296.661Z" fill="currentColor"/>
+<path d="M1547.11 296.661H1343.74V888.268H1547.11V296.661Z" fill="currentColor"/>
+<path d="M1852.78 493.465H2000V296.661H1852.78V0H1649.4V888.249H1852.78V493.465Z" fill="currentColor"/>
+<path d="M1152.91 592.166L1270.04 296.661H1050.53L931.276 592.166H1152.91Z" fill="currentColor"/>
+<path d="M800.922 296.661H581.409L816.517 888.249H1040.25L800.922 296.661Z" fill="currentColor"/>
+<path d="M1548.44 0H1342.41V197.401H1548.44V0Z" fill="currentColor"/>
+</svg></span>
+    <span class="slide-top-tag">Technical test</span>
+  </div>
+  <div class="slide-body" style="justify-content:flex-start;padding-top:16px;overflow-y:auto">
+    <div class="eyebrow">Your technical test</div>
+    <div class="prueba-card">
+      <div class="prueba-tag">Brief</div>
+      <div class="prueba-nombre" id="prueba-titulo">—</div>
+      <div class="prueba-desc" id="prueba-desc">Download the brief, complete the test and upload your submission here.</div>
+      <button class="btn-ghost-dark" onclick="descargarEnunciado()">Download brief →</button>
+    </div>
+    <div id="entrega-pendiente">
+      <div class="entrega-drop" onclick="document.getElementById('entrega-input').click()">
+        <div style="font-size:22px;opacity:.25">↑</div>
+        <div class="entrega-drop-label">Upload my submission (PDF)</div>
+      </div>
+      <input type="file" id="entrega-input" accept=".pdf" style="display:none" onchange="subirEntrega(this.files[0])">
+    </div>
+    <div id="entrega-ok" style="display:none" class="entrega-ok">
+      <div class="entrega-ok-text">✓ Submission received. Thank you.</div>
+    </div>
+  </div>
+  <div class="slide-bottom">
+    <span class="slide-bottom-meta"></span>
+    <span class="slide-bottom-meta">06</span>
+  </div>
+</div>
+
+</div>
+
+<script>
+const SUPABASE_URL='https://tdotlurmytvcdgmlmecc.supabase.co';
+const SUPABASE_KEY='sb_publishable_QH5TpVUMwoqtcEIcTPo-Qg_UF6LnZYi';
+const {createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let cand=null;
+let discR={},discIdx=0;
+
+const DISC_QS=[
+  {id:1,t:"I find it natural to make decisions when time is short.",d:"D"},
+  {id:2,t:"I find it easy to start conversations with people I don't yet know.",d:"I"},
+  {id:3,t:"I stay calm when the environment becomes tense.",d:"S"},
+  {id:4,t:"Before deciding, I review available data and possible errors.",d:"C"},
+  {id:5,t:"I feel comfortable defending a position even if it may cause disagreement.",d:"D"},
+  {id:6,t:"I tend to convey enthusiasm and motivate others.",d:"I"},
+  {id:7,t:"I prefer changes to be introduced gradually and clearly explained.",d:"S"},
+  {id:8,t:"I find it hard to consider a task done if it doesn't meet the expected quality level.",d:"C"},
+  {id:9,t:"When facing a demanding goal, I quickly focus on priority results.",d:"D"},
+  {id:10,t:"Sharing my ideas out loud helps me develop them.",d:"I"},
+  {id:11,t:"I consider myself consistent and reliable in following through on tasks.",d:"S"},
+  {id:12,t:"I work best when criteria, objectives and responsibilities are clearly defined.",d:"C"},
+  {id:13,t:"I prefer having room to act without constant supervision.",d:"D"},
+  {id:14,t:"I feel comfortable presenting proposals and seeking others' support.",d:"I"},
+  {id:15,t:"I tend to listen to and understand different viewpoints before sharing my opinion.",d:"S"},
+  {id:16,t:"I easily spot inconsistencies or details that others may overlook.",d:"C"},
+  {id:17,t:"When an obstacle arises, I tend to face it head on.",d:"D"},
+  {id:18,t:"I enjoy building relationships and expanding my professional network.",d:"I"},
+  {id:19,t:"It comes naturally to me to support others when they are struggling.",d:"S"},
+  {id:20,t:"When a task is complex, I tend to structure it step by step.",d:"C"},
+  {id:21,t:"In meetings, I tend to push for a concrete conclusion or decision.",d:"D"},
+  {id:22,t:"In a team, I help maintain a positive and participative environment.",d:"I"},
+  {id:23,t:"I value working with stable agreements, continuity and some predictability.",d:"S"},
+  {id:24,t:"I usually check my work before considering it finished.",d:"C"},
+];
+const DISC_OPTS=[
+  {v:1,l:"Almost never describes me"},{v:2,l:"Rarely describes me"},
+  {v:3,l:"Sometimes describes me"},{v:4,l:"Often describes me"},
+  {v:5,l:"Almost always describes me"},
+];
+const ESTADO_CFG={
+  preseleccionado:{t:"Application received",s:"The team will review your profile soon.",dot:"wait"},
+  perfil_incompleto:{t:"Complete your questionnaire",s:"Complete the questionnaire to continue.",dot:"go"},
+  tests_completados:{t:"Under review",s:"Your questionnaire has been received. We'll be in touch soon.",dot:"wait"},
+  prueba_asignada:{t:"Technical test available",s:"Download the brief and upload your submission.",dot:"go"},
+  prueba_entregada:{t:"Test under review",s:"We've received your submission.",dot:"wait"},
+  entrevista_tecnica:{t:"Technical interview",s:"You'll receive the details by email.",dot:"wait"},
+  oferta:{t:"Congratulations!",s:"The team would like to make you an offer.",dot:"go"},
+  descartado:{t:"Process closed",s:"Thank you for your interest in Livit.",dot:"wait"},
+};
+const FASES=[
+  {l:"Welcome",done:["perfil_incompleto","tests_completados","prueba_asignada","prueba_entregada","entrevista_tecnica","oferta","descartado"]},
+  {l:"Behavioural questionnaire",done:["tests_completados","prueba_asignada","prueba_entregada","entrevista_tecnica","oferta"]},
+  {l:"Team review",done:["prueba_asignada","prueba_entregada","entrevista_tecnica","oferta"]},
+  {l:"Technical test",done:["prueba_entregada","entrevista_tecnica","oferta"]},
+  {l:"Technical interview",done:["oferta"]},
+  {l:"Offer",done:[]},
+];
+
+// ── AUTH STATE ────────────────────────────────────
+let dbCand = null; // cliente Supabase con JWT del candidato
+
+window.addEventListener('load', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const savedToken = sessionStorage.getItem('cand_token');
+  const savedJwt = sessionStorage.getItem('cand_jwt');
+
+  if (token) {
+    // Intercambiar magic token por JWT
+    await autenticarConToken(token);
+  } else if (savedToken && savedJwt) {
+    // Restaurar sesión guardada
+    dbCand = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      global: { headers: { Authorization: `Bearer ${savedJwt}` } }
+    });
+    await cargarCandidato(savedToken);
+  }
+  // Sin token ni sesión — el vídeo está visible, el candidato desliza y pone su email
+});
+
+async function autenticarConToken(token) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/auth-candidato`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const data = await res.json();
+    if (!data.jwt) {
+      document.getElementById('intro-body').textContent = "We couldn't find your process. Contact the Livit team.";
+      document.querySelector('.btn-primary').style.display = 'none';
+      return;
+    }
+    // Guardar JWT y token en sesión
+    sessionStorage.setItem('cand_jwt', data.jwt);
+    sessionStorage.setItem('cand_token', token);
+    // Crear cliente Supabase con JWT
+    dbCand = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      global: { headers: { Authorization: `Bearer ${data.jwt}` } }
+    });
+    cand = data.candidato;
+    document.getElementById('intro-nombre').textContent = cand.nombre?.split(' ')[0] || '';
+    if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(cand.estado)) {
+      await renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
+      if (['prueba_asignada','prueba_entregada'].includes(cand.estado)) showSlide('slide-prueba');
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+async function cargarCandidato(token) {
+  const { data } = await dbCand.from('candidatos')
+    .select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))')
+    .eq('magic_token', token).maybeSingle();
+  if (!data) return;
+  cand = data;
+  document.getElementById('intro-nombre').textContent = cand.nombre?.split(' ')[0] || '';
+  if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(cand.estado)) {
+    await renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
+    if (['prueba_asignada','prueba_entregada'].includes(cand.estado)) showSlide('slide-prueba');
+  }
+}
 
 function scrollNext(){document.getElementById('slides').scrollBy({top:window.innerHeight,behavior:'smooth'})}
 function showSlide(id){const el=document.getElementById(id);if(el)el.style.display='flex'}
