@@ -401,9 +401,9 @@ body{font-family:var(--font);overflow:hidden}
     <div id="entrega-pendiente">
       <div class="entrega-drop" onclick="document.getElementById('entrega-input').click()">
         <div style="font-size:22px;opacity:.25">↑</div>
-        <div class="entrega-drop-label">Upload my submission (PDF)</div>
+        <div class="entrega-drop-label">Upload your submission — PDF, video or image (max 25 MB)</div>
       </div>
-      <input type="file" id="entrega-input" accept=".pdf" style="display:none" onchange="subirEntrega(this.files[0])">
+      <input type="file" id="entrega-input" accept=".pdf,.mp4,.mov,.avi,.webm,.jpg,.jpeg,.png,.gif" style="display:none" onchange="subirEntrega(this.files[0])">
     </div>
     <div id="entrega-ok" style="display:none" class="entrega-ok">
       <div class="entrega-ok-text">✓ Submission received. Thank you.</div>
@@ -659,7 +659,15 @@ async function descargarEnunciado(){
 }
 
 async function subirEntrega(file){
-  if(!file||file.type!=='application/pdf'){alert('Solo PDF');return}
+  if(!file)return;
+  const allowedExt=['.pdf','.mp4','.mov','.avi','.webm','.jpg','.jpeg','.png','.gif'];
+  const ext='.'+file.name.split('.').pop().toLowerCase();
+  if(!allowedExt.includes(ext)){
+    alert('Format not supported. Please upload a PDF, video (MP4, MOV, AVI) or image (JPG, PNG, GIF).');return;
+  }
+  if(file.size>25*1024*1024){
+    alert('File too large. Maximum size is 25 MB.');return;
+  }
   const drop=document.querySelector('.entrega-drop');
   if(drop)drop.innerHTML='<div class="entrega-drop-label">Subiendo...</div>';
   const path=`entregas/${cand.id}/${Date.now()}_${file.name}`;
