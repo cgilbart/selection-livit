@@ -420,7 +420,7 @@ body{font-family:var(--font);overflow:hidden}
 const SUPABASE_URL='https://tdotlurmytvcdgmlmecc.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkb3RsdXJteXR2Y2RnbWxtZWNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1MjAyOTMsImV4cCI6MjEwMjA5NjI5M30.GWMQV3Oz0X5oEe_-inidTAg1VBgHbQD6r23ckZXMCc4';
 const {createClient}=supabase;
-const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+const db=createClient(SUPABASE_URL,SUPABASE_KEY,{global:{headers:{'apikey':SUPABASE_KEY}}});
 
 let cand=null;
 let discR={},discIdx=0;
