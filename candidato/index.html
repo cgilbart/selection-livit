@@ -640,7 +640,10 @@ function renderDash(){
     document.getElementById('prueba-titulo').textContent=bp?.titulo||'Technical test';
     document.getElementById('prueba-desc').textContent=bp?.descripcion||'Descarga el enunciado, complétala y sube tu entrega.';
     window._enunciadoUrl=prueba.enunciado_url;
-    if(prueba.entrega_url){document.getElementById('entrega-pendiente').style.display='none';document.getElementById('entrega-ok').style.display='flex';}
+    if(prueba.entrega_url){
+      document.getElementById('entrega-pendiente').style.display='block';
+      document.getElementById('entrega-ok').style.display='flex';
+    }
   }
 }
 
@@ -683,7 +686,7 @@ async function subirEntrega(file){
   await dbCand.from('pruebas_tecnicas').update({entrega_url,fecha_entrega:new Date().toISOString()}).eq('candidato_id',cand.id);
   await dbCand.from('candidatos').update({estado:'prueba_entregada',updated_at:new Date().toISOString()}).eq('id',cand.id);
   await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:'prueba_asignada',estado_nuevo:'prueba_entregada',cambiado_por:'sistema'});
-  document.getElementById('entrega-pendiente').style.display='none';
+  document.getElementById('entrega-ok').innerHTML='<div class="entrega-ok-text">✓ Submission uploaded. You can replace it by uploading a new file.</div>';
   document.getElementById('entrega-ok').style.display='flex';
 }
 

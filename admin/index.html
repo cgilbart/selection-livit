@@ -1351,16 +1351,22 @@ async function abrirCandidato(id){
     if(prueba.entrega_url){
       elEntrega.style.display='block';
       const url=prueba.entrega_url;
-      // Extraer path — puede ser /storage/v1/object/entregas/PATH o URL pública
-      let path=null;
-      if(url.includes('/object/entregas/'))path=decodeURIComponent(url.split('/object/entregas/')[1].split('?')[0]);
-      else if(url.includes('/object/public/entregas/'))path=decodeURIComponent(url.split('/object/public/entregas/')[1].split('?')[0]);
-      if(path){
+      let signedUrl=url;
+      // Detectar bucket y extraer path
+      if(url.includes('/object/public/pruebas/')){
+        const path=decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]);
+        const{data:signed}=await db.storage.from('pruebas').createSignedUrl(path,3600);
+        if(signed?.signedUrl)signedUrl=signed.signedUrl;
+      } else if(url.includes('/object/entregas/')){
+        const path=decodeURIComponent(url.split('/object/entregas/')[1].split('?')[0]);
         const{data:signed}=await db.storage.from('entregas').createSignedUrl(path,3600);
-        document.getElementById('m-entrega-link').href=signed?.signedUrl||url;
-      } else {
-        document.getElementById('m-entrega-link').href=url;
+        if(signed?.signedUrl)signedUrl=signed.signedUrl;
+      } else if(url.includes('/object/public/entregas/')){
+        const path=decodeURIComponent(url.split('/object/public/entregas/')[1].split('?')[0]);
+        const{data:signed}=await db.storage.from('entregas').createSignedUrl(path,3600);
+        if(signed?.signedUrl)signedUrl=signed.signedUrl;
       }
+      document.getElementById('m-entrega-link').href=signedUrl;
     } else {
       elEntrega.style.display='none';
     }
