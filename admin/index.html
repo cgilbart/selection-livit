@@ -1465,7 +1465,7 @@ async function crearCandidato(){
 
 function copiarEnlace(){
   if(!actual?.magic_token){toast_msg('Este candidato no tiene enlace generado');return}
-  const enlace=`https://selection-livit.netlify.app/candidato/?token=${actual.magic_token}`;
+  const enlace=`https://selection.livit.design/candidato/?token=${actual.magic_token}`;
   navigator.clipboard.writeText(enlace).then(()=>{
     toast_msg('Enlace copiado — pégalo en WhatsApp o email');
   }).catch(()=>{
