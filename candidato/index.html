@@ -662,49 +662,85 @@ async function descargarEnunciado(){
   window.open(url,'_blank');
 }
 
+async function cargarEntregas(){
+  if(!cand?.id||!dbCand)return;
+  const{data}=await dbCand.from('entregas_archivos').select('*').eq('candidato_id',cand.id).order('created_at',{ascending:false});
+  const lista=document.getElementById('entrega-archivos-list');
+  const wrap=document.getElementById('entrega-lista');
+  if(!data||data.length===0){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  lista.innerHTML=data.map(a=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(242,237,230,.07)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:14px;opacity:.5">${getFileIcon(a.nombre_archivo)}</span>
+        <span style="font-size:12px;font-weight:600;color:rgba(242,237,230,.7)">${a.nombre_archivo}</span>
+      </div>
+      <button onclick="eliminarEntrega('${a.id}','${a.storage_path}')" style="font-size:10px;font-weight:700;color:rgba(242,237,230,.25);background:none;border:none;cursor:pointer;padding:4px 8px;letter-spacing:.5px;text-transform:uppercase">Remove</button>
+    </div>`).join('');
+}
+
+function getFileIcon(nombre){
+  const ext=nombre.split('.').pop().toLowerCase();
+  if(['mp4','mov','avi','webm'].includes(ext))return '🎬';
+  if(['jpg','jpeg','png','gif'].includes(ext))return '🖼';
+  return '📄';
+}
+
+async function eliminarEntrega(id, path){
+  if(!confirm('Remove this file?'))return;
+  await dbCand.storage.from('entregas').remove([path]);
+  await dbCand.from('entregas_archivos').delete().eq('id',id);
+  await cargarEntregas();
+}
+
 async function subirEntregas(files){
   if(!files||files.length===0)return;
   if(!dbCand){dbCand=db;}
   const allowedExt=['.pdf','.mp4','.mov','.avi','.webm','.jpg','.jpeg','.png','.gif'];
-  const drop=document.querySelector('.entrega-drop');
+  const label=document.getElementById('entrega-drop-label');
   let subidos=0;let errores=0;
   const total=files.length;
 
-  if(drop)drop.innerHTML=`<div class="entrega-drop-label">Uploading ${total} file${total>1?'s':''}...</div>`;
+  if(label)label.textContent=`Uploading ${total} file${total>1?'s':''}...`;
 
   for(const file of Array.from(files)){
     const ext='.'+file.name.split('.').pop().toLowerCase();
     if(!allowedExt.includes(ext)){errores++;continue;}
-    if(file.size>25*1024*1024){
-      toast_showMsg(`${file.name} exceeds 25 MB — skipped`);
-      errores++;continue;
-    }
+    if(file.size>25*1024*1024){errores++;continue;}
+
     const path=`${cand.id}/${Date.now()}_${file.name}`;
     const{error}=await dbCand.storage.from('entregas').upload(path,file,{upsert:true});
-    if(error){errores++;continue;}
-    // Guardar la última URL de entrega (o concatenar nombres)
+    if(error){console.error(error);errores++;continue;}
+
+    // Guardar en tabla entregas_archivos
+    await dbCand.from('entregas_archivos').insert({
+      candidato_id:cand.id,
+      nombre_archivo:file.name,
+      storage_path:path,
+      tamaño_bytes:file.size
+    });
+
+    // Actualizar entrega_url en pruebas_tecnicas con el último archivo
     const entrega_url=`${SUPABASE_URL}/storage/v1/object/entregas/${path}`;
     await dbCand.from('pruebas_tecnicas').update({
       entrega_url,fecha_entrega:new Date().toISOString()
     }).eq('candidato_id',cand.id);
-    await dbCand.from('candidatos').update({
-      estado:'prueba_entregada',updated_at:new Date().toISOString()
-    }).eq('id',cand.id);
-    await dbCand.from('historial_estados').insert({
-      candidato_id:cand.id,estado_anterior:'prueba_asignada',
-      estado_nuevo:'prueba_entregada',cambiado_por:'sistema'
-    }).maybeSingle();
+
+    // Cambiar estado a prueba_entregada si no lo está
+    if(cand.estado==='prueba_asignada'){
+      await dbCand.from('candidatos').update({estado:'prueba_entregada',updated_at:new Date().toISOString()}).eq('id',cand.id);
+      await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:'prueba_asignada',estado_nuevo:'prueba_entregada',cambiado_por:'sistema'}).maybeSingle();
+      cand.estado='prueba_entregada';
+    }
     subidos++;
   }
 
-  if(drop)drop.innerHTML=`<div style="font-size:20px;opacity:.4;margin-bottom:6px">↑</div><div class="entrega-drop-label">Upload more files</div>`;
-  document.getElementById('entrega-ok').innerHTML=`<div class="entrega-ok-text">✓ ${subidos} file${subidos>1?'s':''} uploaded${errores>0?` (${errores} skipped)`:''} — you can add more anytime.</div>`;
-  document.getElementById('entrega-ok').style.display='flex';
-}
-
-function toast_showMsg(msg){
-  // Reutilizar alerta simple
-  console.warn(msg);
+  if(label)label.textContent='Upload more files — PDF, video or image · Max 25 MB each';
+  const ok=document.getElementById('entrega-ok');
+  const okText=document.getElementById('entrega-ok-text');
+  if(okText)okText.textContent=`✓ ${subidos} file${subidos>1?'s':''} uploaded${errores>0?` (${errores} skipped)`:''} — you can add or remove files anytime.`;
+  if(ok)ok.style.display='flex';
+  await cargarEntregas();
 }
 
 </script>
