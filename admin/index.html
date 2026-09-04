@@ -160,6 +160,8 @@ td{padding:13px 16px;font-size:12px}
 .b-entrevista_tecnica .badge-dot{background:var(--pink)}
 .b-oferta{background:rgba(74,200,130,.15);color:var(--green);border:1px solid rgba(74,200,130,.3)}
 .b-oferta .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
+.b-contratado{background:rgba(74,200,130,.15);color:var(--green);border:1px solid rgba(74,200,130,.3)}
+.b-contratado .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
 .b-descartado{background:rgba(255,82,82,.08);color:var(--red);border:1px solid rgba(255,82,82,.2)}
 .b-descartado .badge-dot{background:var(--red)}
 
@@ -503,7 +505,7 @@ td{padding:13px 16px;font-size:12px}
       <div class="page-header">
         <div>
           <div class="page-title">Biblioteca de candidatos</div>
-          <div class="page-subtitle">Candidatos descartados — archivados para futura referencia</div>
+          <div class="page-subtitle">Candidatos contratados y descartados — archivados para futura referencia</div>
         </div>
       </div>
       <div class="table-wrap">
@@ -619,6 +621,7 @@ td{padding:13px 16px;font-size:12px}
         <option value="prueba_entregada">Prueba entregada</option>
         <option value="entrevista_tecnica">Entrevista técnica</option>
         <option value="oferta">Oferta</option>
+        <option value="contratado">Contratado</option>
         <option value="descartado">Descartado</option>
       </select>
     </div>
@@ -850,7 +853,7 @@ const labels={
   preseleccionado:'Preseleccionado',perfil_incompleto:'Perfil incompleto',
   tests_completados:'Tests completados',prueba_asignada:'Prueba asignada',
   prueba_entregada:'Prueba entregada',entrevista_tecnica:'Entrevista técnica',
-  oferta:'Oferta',descartado:'Descartado'
+  oferta:'Oferta',contratado:'Contratado',descartado:'Descartado'
 };
 
 function cerrarInformeDisc(){
@@ -994,7 +997,7 @@ async function abrirInformeDisc(){
 }
 
 async function loadBiblioteca(){
-  const{data}=await db.from('candidatos').select('*,vacantes(titulo),resultados_disc(perfil_principal,perfil_secundario)').eq('estado','descartado').order('updated_at',{ascending:false});
+  const{data}=await db.from('candidatos').select('*,vacantes(titulo),resultados_disc(perfil_principal,perfil_secundario)').in('estado',['descartado','contratado']).order('updated_at',{ascending:false});
   const lista=data||[];
   document.getElementById('badge-biblioteca').textContent=lista.length;
   const tbody=document.getElementById('tabla-biblioteca');
@@ -1071,7 +1074,7 @@ async function adminLogout(){
 async function loadCandidatos(){
   const {data}=await db.from('candidatos').select('*,vacantes(titulo)').order('created_at',{ascending:false});
   candidatos=data||[];
-  const activos=candidatos.filter(c=>c.estado!=='descartado');
+  const activos=candidatos.filter(c=>c.estado!=='descartado'&&c.estado!=='contratado');
   renderCandidatos(activos);
   updateStats(activos);
   document.getElementById('badge-candidatos').textContent=activos.length;
@@ -1167,7 +1170,7 @@ function renderPruebas(list){
     <tr>
       <td><div class="td-name">${p.titulo}</div>${p.descripcion?`<div class="td-email">${p.descripcion.substring(0,60)}${p.descripcion.length>60?'...':''}</div>`:''}</td>
       <td>${p.vacantes?`<span class="vac-tag">${p.vacantes.titulo}</span>`:'<span style="color:var(--muted2);font-size:11px">Cualquier vacante</span>'}</td>
-      <td>${p.archivo_url?`<a class="field-link" href="${p.archivo_url}" target="_blank">📄 ${p.archivo_nombre||'Ver PDF'}</a>`:'<span style="color:var(--red);font-size:11px">Sin archivo</span>'}</td>
+      <td>${p.archivo_url?`<button onclick="verPruebaBiblioteca('${p.archivo_url}')" class="field-link" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--pink)">📄 ${p.archivo_nombre||'Ver PDF'}</button>`:'<span style="color:var(--red);font-size:11px">Sin archivo</span>'}</td>
       <td style="color:var(--muted);font-size:12px;font-weight:600">${candidatos.filter(c=>c.prueba_id===p.id||false).length} asignaciones</td>
       <td class="td-date">${fmt(p.created_at)}</td>
     </tr>`).join('');
@@ -1281,18 +1284,34 @@ async function desasignarPrueba(){
   await loadCandidatos();
 }
 
+async function verPruebaBiblioteca(url){
+  let path=null;
+  if(url.includes('/object/public/pruebas/'))path=decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]);
+  else if(url.includes('/object/pruebas/'))path=decodeURIComponent(url.split('/object/pruebas/')[1].split('?')[0]);
+  if(path){
+    const{data,error}=await db.storage.from('pruebas').createSignedUrl(path,3600);
+    if(data?.signedUrl){window.open(data.signedUrl,'_blank');return;}
+    console.error('Error generando URL firmada:',error);
+  }
+  window.open(url,'_blank');
+}
+
 async function descargarPrueba(){
   if(!actual)return;
   const{data:pt}=await db.from('pruebas_tecnicas').select('enunciado_url').eq('candidato_id',actual.id).maybeSingle();
   if(!pt?.enunciado_url)return;
   const url=pt.enunciado_url;
-  const path=url.includes('/object/public/pruebas/')?decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]):null;
+  // Extraer path del bucket pruebas
+  let path=null;
+  if(url.includes('/object/public/pruebas/'))path=decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]);
+  else if(url.includes('/object/sign/pruebas/'))path=decodeURIComponent(url.split('/object/sign/pruebas/')[1].split('?')[0]);
+  else if(url.includes('/object/pruebas/'))path=decodeURIComponent(url.split('/object/pruebas/')[1].split('?')[0]);
   if(path){
-    const{data}=await db.storage.from('pruebas').createSignedUrl(path,3600);
-    if(data?.signedUrl)window.open(data.signedUrl,'_blank');
-  } else {
-    window.open(url,'_blank');
+    const{data,error}=await db.storage.from('pruebas').createSignedUrl(path,3600);
+    if(data?.signedUrl){window.open(data.signedUrl,'_blank');return;}
+    console.error('Signed URL error:',error);
   }
+  window.open(url,'_blank');
 }
 
 function filtrar(){
@@ -1300,7 +1319,7 @@ function filtrar(){
   const est=document.getElementById('filter-estado').value;
   const vac=document.getElementById('filter-vacante').value;
   renderCandidatos(candidatos.filter(c=>{
-    if(c.estado==='descartado')return false;
+    if(c.estado==='descartado'||c.estado==='contratado')return false;
     const mq=!q||c.nombre.toLowerCase().includes(q)||c.email.toLowerCase().includes(q);
     const me=!est||c.estado===est;
     const mv=!vac||c.vacante_id===vac;
@@ -1476,8 +1495,16 @@ async function guardar(){
   if(error){toast_msg('Error al guardar');return}
   if(nuevoEstado!==anterior){
     await db.from('historial_estados').insert({candidato_id:actual.id,estado_anterior:anterior,estado_nuevo:nuevoEstado,cambiado_por:'Lucía'});
+    // Si se contrata, cerrar la vacante automáticamente
+    if(nuevoEstado==='contratado' && actual.vacante_id){
+      await db.from('vacantes').update({estado:'cerrada'}).eq('id',actual.vacante_id);
+      toast_msg('Candidato contratado — vacante cerrada automáticamente');
+    } else {
+      toast_msg('Cambios guardados');
+    }
+  } else {
+    toast_msg('Cambios guardados');
   }
-  toast_msg('Cambios guardados');
   closeModal('modal-cand');
   await loadCandidatos();
 }

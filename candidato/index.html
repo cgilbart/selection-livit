@@ -399,11 +399,11 @@ body{font-family:var(--font);overflow:hidden}
       <button class="btn-ghost-dark" onclick="descargarEnunciado()">Download brief →</button>
     </div>
     <div id="entrega-pendiente">
-      <div class="entrega-drop" onclick="document.getElementById('entrega-input').click()">
+      <div class="entrega-drop" onclick="document.getElementById('entrega-input').click()" ondragover="event.preventDefault();this.classList.add('dragging')" ondragleave="this.classList.remove('dragging')" ondrop="event.preventDefault();subirEntregas(event.dataTransfer.files)">
         <div style="font-size:22px;opacity:.25">↑</div>
-        <div class="entrega-drop-label">Upload your submission — PDF, video or image (max 25 MB)</div>
+        <div class="entrega-drop-label">Upload your files — PDF, video or image · Max 25 MB each · Multiple files allowed</div>
       </div>
-      <input type="file" id="entrega-input" accept=".pdf,.mp4,.mov,.avi,.webm,.jpg,.jpeg,.png,.gif" style="display:none" onchange="subirEntrega(this.files[0])">
+      <input type="file" id="entrega-input" accept=".pdf,.mp4,.mov,.avi,.webm,.jpg,.jpeg,.png,.gif" style="display:none" multiple onchange="subirEntregas(this.files)">
     </div>
     <div id="entrega-ok" style="display:none" class="entrega-ok">
       <div class="entrega-ok-text">✓ Submission received. Thank you.</div>
@@ -652,42 +652,59 @@ function renderDash(){
 async function descargarEnunciado(){
   if(!window._enunciadoUrl)return;
   const url=window._enunciadoUrl;
-  const path=url.includes('/object/public/pruebas/')?decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]):null;
+  let path=null;
+  if(url.includes('/object/public/pruebas/'))path=decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]);
+  else if(url.includes('/object/pruebas/'))path=decodeURIComponent(url.split('/object/pruebas/')[1].split('?')[0]);
   if(path){
     const{data}=await dbCand.storage.from('pruebas').createSignedUrl(path,3600);
-    if(data?.signedUrl)window.open(data.signedUrl,'_blank');
-  } else {
-    window.open(url,'_blank');
+    if(data?.signedUrl){window.open(data.signedUrl,'_blank');return;}
   }
+  window.open(url,'_blank');
 }
 
-async function subirEntrega(file){
-  if(!file)return;
+async function subirEntregas(files){
+  if(!files||files.length===0)return;
   if(!dbCand){dbCand=db;}
   const allowedExt=['.pdf','.mp4','.mov','.avi','.webm','.jpg','.jpeg','.png','.gif'];
-  const ext='.'+file.name.split('.').pop().toLowerCase();
-  if(!allowedExt.includes(ext)){
-    alert('Format not supported. Please upload a PDF, video (MP4, MOV, AVI) or image (JPG, PNG, GIF).');return;
-  }
-  if(file.size>25*1024*1024){
-    alert('File too large. Maximum size is 25 MB.');return;
-  }
   const drop=document.querySelector('.entrega-drop');
-  if(drop)drop.innerHTML='<div class="entrega-drop-label">Subiendo...</div>';
-  const path=`${cand.id}/${Date.now()}_${file.name}`;
-  const{error}=await dbCand.storage.from('entregas').upload(path,file,{upsert:true});
-  if(error){
-    console.error('Upload error:', error);
-    if(drop)drop.innerHTML='<div class="entrega-drop-label" style="color:var(--pink)">Error: '+error.message+'</div>';
-    return;
+  let subidos=0;let errores=0;
+  const total=files.length;
+
+  if(drop)drop.innerHTML=`<div class="entrega-drop-label">Uploading ${total} file${total>1?'s':''}...</div>`;
+
+  for(const file of Array.from(files)){
+    const ext='.'+file.name.split('.').pop().toLowerCase();
+    if(!allowedExt.includes(ext)){errores++;continue;}
+    if(file.size>25*1024*1024){
+      toast_showMsg(`${file.name} exceeds 25 MB — skipped`);
+      errores++;continue;
+    }
+    const path=`${cand.id}/${Date.now()}_${file.name}`;
+    const{error}=await dbCand.storage.from('entregas').upload(path,file,{upsert:true});
+    if(error){errores++;continue;}
+    // Guardar la última URL de entrega (o concatenar nombres)
+    const entrega_url=`${SUPABASE_URL}/storage/v1/object/entregas/${path}`;
+    await dbCand.from('pruebas_tecnicas').update({
+      entrega_url,fecha_entrega:new Date().toISOString()
+    }).eq('candidato_id',cand.id);
+    await dbCand.from('candidatos').update({
+      estado:'prueba_entregada',updated_at:new Date().toISOString()
+    }).eq('id',cand.id);
+    await dbCand.from('historial_estados').insert({
+      candidato_id:cand.id,estado_anterior:'prueba_asignada',
+      estado_nuevo:'prueba_entregada',cambiado_por:'sistema'
+    }).maybeSingle();
+    subidos++;
   }
-  // Guardar el path (no URL pública — bucket privado)
-  const entrega_url=`${SUPABASE_URL}/storage/v1/object/entregas/${path}`;
-  await dbCand.from('pruebas_tecnicas').update({entrega_url,fecha_entrega:new Date().toISOString()}).eq('candidato_id',cand.id);
-  await dbCand.from('candidatos').update({estado:'prueba_entregada',updated_at:new Date().toISOString()}).eq('id',cand.id);
-  await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:'prueba_asignada',estado_nuevo:'prueba_entregada',cambiado_por:'sistema'});
-  document.getElementById('entrega-ok').innerHTML='<div class="entrega-ok-text">✓ Submission uploaded. You can replace it by uploading a new file.</div>';
+
+  if(drop)drop.innerHTML=`<div style="font-size:20px;opacity:.4;margin-bottom:6px">↑</div><div class="entrega-drop-label">Upload more files</div>`;
+  document.getElementById('entrega-ok').innerHTML=`<div class="entrega-ok-text">✓ ${subidos} file${subidos>1?'s':''} uploaded${errores>0?` (${errores} skipped)`:''} — you can add more anytime.</div>`;
   document.getElementById('entrega-ok').style.display='flex';
+}
+
+function toast_showMsg(msg){
+  // Reutilizar alerta simple
+  console.warn(msg);
 }
 
 </script>
