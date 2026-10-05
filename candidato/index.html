@@ -598,6 +598,7 @@ async function discFwd(){
   else{await calcDisc();}
 }
 async function calcDisc(){
+  if(!dbCand)dbCand=db;
   const dims={D:[1,5,9,13,17,21],I:[2,6,10,14,18,22],S:[3,7,11,15,19,23],C:[4,8,12,16,20,24]};
   const raw={};Object.entries(dims).forEach(([d,ids])=>{raw[d]=ids.reduce((s,id)=>s+(discR[id]||0),0)});
   const sc={};Object.entries(raw).forEach(([d,v])=>{sc[d]=Math.round(((v-6)/24)*100)});
@@ -606,7 +607,14 @@ async function calcDisc(){
   const allDiff=sorted[0][1]-sorted[sorted.length-1][1];
   const tipo=allDiff<=10?'equilibrado':diff>=15?'principal_definido':diff>=8?'principal_con_tendencia':'perfil_combinado';
   const codigo=tipo==='equilibrado'?'DISC':diff<=7?`${primary}${secondary}`:`${primary}(${secondary})`;
-  await dbCand.from('resultados_disc').insert({candidato_id:cand.id,respuestas:discR,puntuacion_d:sc.D,puntuacion_i:sc.I,puntuacion_s:sc.S,puntuacion_c:sc.C,perfil_principal:primary,perfil_secundario:secondary,tipo_perfil:tipo,informe_html:codigo});
+
+  const{error:discErr}=await dbCand.from('resultados_disc').insert({
+    candidato_id:cand.id,respuestas:discR,
+    puntuacion_d:sc.D,puntuacion_i:sc.I,puntuacion_s:sc.S,puntuacion_c:sc.C,
+    perfil_principal:primary,perfil_secundario:secondary,tipo_perfil:tipo,informe_html:codigo
+  });
+  if(discErr){console.error('DISC insert error:',discErr);alert('Error saving questionnaire. Please try again.');return;}
+
   await dbCand.from('candidatos').update({estado:'tests_completados',updated_at:new Date().toISOString()}).eq('id',cand.id);
   await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:cand.estado,estado_nuevo:'tests_completados',cambiado_por:'sistema'});
   cand.estado='tests_completados';
@@ -708,8 +716,10 @@ async function subirEntregas(files){
     if(!allowedExt.includes(ext)){errores++;continue;}
     if(file.size>25*1024*1024){errores++;continue;}
 
-    const path=`${cand.id}/${Date.now()}_${file.name}`;
-    const{error}=await dbCand.storage.from('entregas').upload(path,file,{upsert:true});
+    const timestamp=Date.now()+Math.random().toString(36).substring(2,7);
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path=`${cand.id}/${timestamp}_${safeName}`;
+    const{error}=await dbCand.storage.from('entregas').upload(path,file);
     if(error){console.error(error);errores++;continue;}
 
     // Guardar en tabla entregas_archivos
