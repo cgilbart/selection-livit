@@ -457,22 +457,31 @@ const DISC_OPTS=[
   {v:5,l:"Almost always describes me"},
 ];
 const ESTADO_CFG={
-  preseleccionado:{t:"Application received",s:"The team will review your profile soon.",dot:"wait"},
-  perfil_incompleto:{t:"Complete your questionnaire",s:"Complete the questionnaire to continue.",dot:"go"},
-  tests_completados:{t:"Under review",s:"Your questionnaire has been received. We'll be in touch soon.",dot:"wait"},
-  prueba_asignada:{t:"Technical test available",s:"Download the brief and upload your submission.",dot:"go"},
-  prueba_entregada:{t:"Test under review",s:"We've received your submission.",dot:"wait"},
-  entrevista_tecnica:{t:"Technical interview",s:"You'll receive the details by email.",dot:"wait"},
+  // Nuevos estados
+  invited:{t:"Welcome to Livit",s:"Complete the assessment to continue your application.",dot:"go"},
+  assessment:{t:"Assessment in progress",s:"Complete the questionnaire and upload your submission.",dot:"go"},
+  under_review:{t:"Under review",s:"The Livit team is reviewing your application.",dot:"wait"},
+  interview:{t:"Technical interview",s:"You'll receive the interview details by email.",dot:"wait"},
+  offer:{t:"Congratulations!",s:"The Livit team would like to make you an offer.",dot:"go"},
+  hired:{t:"Welcome to the team!",s:"You're now part of Livit.",dot:"go"},
+  rejected:{t:"Process closed",s:"Thank you for your interest in Livit.",dot:"wait"},
+  // Estados anteriores (compatibilidad)
+  preseleccionado:{t:"Welcome to Livit",s:"Complete the assessment to continue.",dot:"go"},
+  perfil_incompleto:{t:"Assessment in progress",s:"Complete the questionnaire and upload your submission.",dot:"go"},
+  tests_completados:{t:"Under review",s:"The team is reviewing your application.",dot:"wait"},
+  prueba_asignada:{t:"Assessment in progress",s:"Complete the questionnaire and upload your submission.",dot:"go"},
+  prueba_entregada:{t:"Under review",s:"We've received your submission. We'll be in touch soon.",dot:"wait"},
+  entrevista_tecnica:{t:"Technical interview",s:"You'll receive the interview details by email.",dot:"wait"},
   oferta:{t:"Congratulations!",s:"The team would like to make you an offer.",dot:"go"},
+  contratado:{t:"Welcome to the team!",s:"You're now part of Livit.",dot:"go"},
   descartado:{t:"Process closed",s:"Thank you for your interest in Livit.",dot:"wait"},
 };
 const FASES=[
-  {l:"Welcome",done:["perfil_incompleto","tests_completados","prueba_asignada","prueba_entregada","entrevista_tecnica","oferta","descartado"]},
-  {l:"Behavioural questionnaire",done:["tests_completados","prueba_asignada","prueba_entregada","entrevista_tecnica","oferta"]},
-  {l:"Team review",done:["prueba_asignada","prueba_entregada","entrevista_tecnica","oferta"]},
-  {l:"Technical test",done:["prueba_entregada","entrevista_tecnica","oferta"]},
-  {l:"Technical interview",done:["oferta"]},
-  {l:"Offer",done:[]},
+  {l:"Welcome",done:["assessment","under_review","interview","offer","hired","rejected","perfil_incompleto","tests_completados","prueba_asignada","prueba_entregada","entrevista_tecnica","oferta","contratado","descartado"]},
+  {l:"Assessment",done:["under_review","interview","offer","hired","rejected","tests_completados","prueba_entregada","entrevista_tecnica","oferta","contratado","descartado"]},
+  {l:"Under review",done:["interview","offer","hired","rejected","entrevista_tecnica","oferta","contratado","descartado"]},
+  {l:"Technical interview",done:["offer","hired","rejected","oferta","contratado","descartado"]},
+  {l:"Offer",done:["hired","contratado"]},
 ];
 
 // ── AUTH STATE ────────────────────────────────────
@@ -519,10 +528,9 @@ async function autenticarConToken(token) {
     });
     cand = data.candidato;
     document.getElementById('intro-nombre').textContent = cand.nombre?.split(' ')[0] || '';
-    if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(cand.estado)) {
-      await renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
-      if (['prueba_asignada','prueba_entregada'].includes(cand.estado)) showSlide('slide-prueba');
-    }
+    // Cargar datos completos del candidato para redirigir
+    const{data:candFull}=await db.from('candidatos').select('*,vacantes(titulo),pruebas_tecnicas(*,biblioteca_pruebas(titulo,descripcion))').eq('id',cand.id).maybeSingle();
+    if(candFull){cand=candFull;await redirigirCandidato(candFull);}
   } catch(e) {
     console.error(e);
   }
@@ -536,10 +544,7 @@ async function cargarCandidato(token) {
   if (!data) return;
   cand = data;
   document.getElementById('intro-nombre').textContent = cand.nombre?.split(' ')[0] || '';
-  if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(cand.estado)) {
-    await renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
-    if (['prueba_asignada','prueba_entregada'].includes(cand.estado)) showSlide('slide-prueba');
-  }
+  await redirigirCandidato(data);
 }
 
 function scrollNext(){document.getElementById('slides').scrollBy({top:window.innerHeight,behavior:'smooth'})}
@@ -564,12 +569,32 @@ async function verificarEmail() {
   cand = data;
   sessionStorage.setItem('cand_email', email);
   document.getElementById('intro-nombre').textContent = data.nombre?.split(' ')[0] || '';
+  await redirigirCandidato(data);
+}
 
-  if (['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta','descartado'].includes(data.estado)) {
-    renderDash(); showSlide('slide-dash'); scrollToSlide('slide-dash');
-    if (['prueba_asignada','prueba_entregada'].includes(data.estado)) showSlide('slide-prueba');
+async function redirigirCandidato(data){
+  const estadoFinal=['under_review','interview','offer','hired','rejected',
+    'tests_completados','prueba_entregada','entrevista_tecnica','oferta','contratado','descartado'];
+  const estadoAssessment=['assessment','invited','preseleccionado','perfil_incompleto','prueba_asignada'];
+
+  if(estadoFinal.includes(data.estado)){
+    renderDash();showSlide('slide-dash');scrollToSlide('slide-dash');
+    // Mostrar prueba si está en assessment y tiene prueba asignada
+    if(data.pruebas_tecnicas)showSlide('slide-prueba');
+  } else if(estadoAssessment.includes(data.estado)){
+    // Comprobar si ya tiene DISC
+    const{data:discCheck}=await db.from('resultados_disc').select('id').eq('candidato_id',data.id).limit(1);
+    const tieneDisc=discCheck&&discCheck.length>0;
+    if(tieneDisc){
+      // DISC hecho — mostrar dashboard con prueba
+      renderDash();showSlide('slide-dash');scrollToSlide('slide-dash');
+      if(data.pruebas_tecnicas)showSlide('slide-prueba');
+    } else {
+      // Sin DISC — ir al test
+      showSlide('slide-disc-intro');scrollToSlide('slide-disc-intro');
+    }
   } else {
-    showSlide('slide-disc-intro'); scrollToSlide('slide-disc-intro');
+    showSlide('slide-disc-intro');scrollToSlide('slide-disc-intro');
   }
 }
 
@@ -617,10 +642,14 @@ async function calcDisc(){
   });
   if(discErr){console.error('DISC insert error:',JSON.stringify(discErr));alert('Error saving questionnaire: '+discErr.message);return;}
 
-  await dbCand.from('candidatos').update({estado:'tests_completados',updated_at:new Date().toISOString()}).eq('id',cand.id);
-  await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:cand.estado,estado_nuevo:'tests_completados',cambiado_por:'sistema'});
-  cand.estado='tests_completados';
+  // Si tiene prueba asignada, pasar a assessment; si no, under_review
+  const nuevoEstado=cand.pruebas_tecnicas?'assessment':'under_review';
+  await dbCand.from('candidatos').update({estado:nuevoEstado,updated_at:new Date().toISOString()}).eq('id',cand.id);
+  await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:cand.estado,estado_nuevo:nuevoEstado,cambiado_por:'sistema'}).maybeSingle();
+  cand.estado=nuevoEstado;
   renderDash();showSlide('slide-dash');scrollToSlide('slide-dash');
+  // Mostrar prueba si está asignada
+  if(cand.pruebas_tecnicas)showSlide('slide-prueba');
 }
 
 function renderDash(){
@@ -738,11 +767,14 @@ async function subirEntregas(files){
       entrega_url,fecha_entrega:new Date().toISOString()
     }).eq('candidato_id',cand.id);
 
-    // Cambiar estado a prueba_entregada si no lo está
-    if(cand.estado==='prueba_asignada'){
-      await dbCand.from('candidatos').update({estado:'prueba_entregada',updated_at:new Date().toISOString()}).eq('id',cand.id);
-      await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:'prueba_asignada',estado_nuevo:'prueba_entregada',cambiado_por:'sistema'}).maybeSingle();
-      cand.estado='prueba_entregada';
+    // Verificar si tiene DISC para decidir el estado
+    const{data:discOk}=await dbCand.from('resultados_disc').select('id').eq('candidato_id',cand.id).limit(1);
+    const tieneDisc=discOk&&discOk.length>0;
+    const nuevoEstado=tieneDisc?'under_review':'assessment';
+    if(!['under_review','interview','offer','hired'].includes(cand.estado)){
+      await dbCand.from('candidatos').update({estado:nuevoEstado,updated_at:new Date().toISOString()}).eq('id',cand.id);
+      await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:cand.estado,estado_nuevo:nuevoEstado,cambiado_por:'sistema'}).maybeSingle();
+      cand.estado=nuevoEstado;
     }
     subidos++;
   }

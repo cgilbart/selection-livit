@@ -160,7 +160,20 @@ td{padding:13px 16px;font-size:12px}
 .b-entrevista_tecnica .badge-dot{background:var(--pink)}
 .b-oferta{background:rgba(74,200,130,.15);color:var(--green);border:1px solid rgba(74,200,130,.3)}
 .b-oferta .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
-.b-contratado{background:rgba(74,200,130,.15);color:var(--green);border:1px solid rgba(74,200,130,.3)}
+.b-contratado,.b-hired{background:rgba(74,200,130,.15);color:var(--green);border:1px solid rgba(74,200,130,.3)}
+.b-contratado .badge-dot,.b-hired .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
+.b-invited{background:rgba(90,170,232,.12);color:var(--blue);border:1px solid rgba(90,170,232,.2)}
+.b-invited .badge-dot{background:var(--blue)}
+.b-assessment{background:rgba(255,202,40,.1);color:var(--amber);border:1px solid rgba(255,202,40,.2)}
+.b-assessment .badge-dot{background:var(--amber)}
+.b-under_review{background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.2)}
+.b-under_review .badge-dot{background:var(--purple)}
+.b-interview{background:rgba(230,0,126,.1);color:var(--pink);border:1px solid rgba(230,0,126,.2)}
+.b-interview .badge-dot{background:var(--pink)}
+.b-offer{background:rgba(74,200,130,.15);color:var(--green);border:1px solid rgba(74,200,130,.3)}
+.b-offer .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
+.b-rejected{background:rgba(255,82,82,.08);color:var(--red);border:1px solid rgba(255,82,82,.2)}
+.b-rejected .badge-dot{background:var(--red)}
 .b-contratado .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
 .b-descartado{background:rgba(255,82,82,.08);color:var(--red);border:1px solid rgba(255,82,82,.2)}
 .b-descartado .badge-dot{background:var(--red)}
@@ -426,13 +439,11 @@ td{padding:13px 16px;font-size:12px}
         </div>
         <select class="filter-select" id="filter-estado" onchange="filtrar()">
           <option value="">Todos los estados</option>
-          <option value="preseleccionado">Preseleccionado</option>
-          <option value="perfil_incompleto">Perfil incompleto</option>
-          <option value="tests_completados">Tests completados</option>
-          <option value="prueba_asignada">Prueba asignada</option>
-          <option value="prueba_entregada">Prueba entregada</option>
-          <option value="entrevista_tecnica">Entrevista técnica</option>
-          <option value="oferta">Oferta</option>
+          <option value="invited">Invitado</option>
+          <option value="assessment">En assessment</option>
+          <option value="under_review">En revisión</option>
+          <option value="interview">Entrevista</option>
+          <option value="offer">Oferta</option>
         </select>
         <select class="filter-select" id="filter-vacante" onchange="filtrar()">
           <option value="">Todas las vacantes</option>
@@ -644,15 +655,13 @@ td{padding:13px 16px;font-size:12px}
     <div class="field-block">
       <div class="field-lbl">Estado del proceso</div>
       <select class="modal-select" id="m-estado">
-        <option value="preseleccionado">Preseleccionado</option>
-        <option value="perfil_incompleto">Perfil incompleto</option>
-        <option value="tests_completados">Tests completados</option>
-        <option value="prueba_asignada">Prueba asignada</option>
-        <option value="prueba_entregada">Prueba entregada</option>
-        <option value="entrevista_tecnica">Entrevista técnica</option>
-        <option value="oferta">Oferta</option>
-        <option value="contratado">Contratado</option>
-        <option value="descartado">Descartado</option>
+        <option value="invited">Invitado</option>
+        <option value="assessment">En assessment</option>
+        <option value="under_review">En revisión</option>
+        <option value="interview">Entrevista</option>
+        <option value="offer">Oferta</option>
+        <option value="hired">Contratado</option>
+        <option value="rejected">Descartado</option>
       </select>
     </div>
 
@@ -886,9 +895,13 @@ const db=createClient(SUPABASE_URL,SUPABASE_KEY,{global:{headers:{'apikey':SUPAB
 let candidatos=[],vacantes=[],pruebas=[],actual=null,pruebaFileReady=null;
 
 const labels={
-  preseleccionado:'Preseleccionado',perfil_incompleto:'Perfil incompleto',
-  tests_completados:'Tests completados',prueba_asignada:'Prueba asignada',
-  prueba_entregada:'Prueba entregada',entrevista_tecnica:'Entrevista técnica',
+  // Nuevos estados
+  invited:'Invitado',assessment:'En assessment',under_review:'En revisión',
+  interview:'Entrevista',offer:'Oferta',hired:'Contratado',rejected:'Descartado',
+  // Estados anteriores (compatibilidad)
+  preseleccionado:'Invitado',perfil_incompleto:'En assessment',
+  tests_completados:'En revisión',prueba_asignada:'En assessment',
+  prueba_entregada:'En revisión',entrevista_tecnica:'Entrevista',
   oferta:'Oferta',contratado:'Contratado',descartado:'Descartado'
 };
 
@@ -1034,7 +1047,7 @@ async function abrirInformeDisc(){
 }
 
 async function loadArchivo(){
-  const{data}=await db.from('candidatos').select('*,vacantes(titulo),resultados_disc(perfil_principal,perfil_secundario)').eq('estado','descartado').order('updated_at',{ascending:false});
+  const{data}=await db.from('candidatos').select('*,vacantes(titulo),resultados_disc(perfil_principal,perfil_secundario)').in('estado',['rejected','descartado']).order('updated_at',{ascending:false});
   const lista=data||[];
   document.getElementById('badge-archivo').textContent=lista.length;
   const tbody=document.getElementById('tabla-archivo');
@@ -1056,7 +1069,7 @@ async function loadArchivo(){
 }
 
 async function loadContratados(){
-  const{data}=await db.from('candidatos').select('*,vacantes(titulo),resultados_disc(perfil_principal,perfil_secundario)').eq('estado','contratado').order('updated_at',{ascending:false});
+  const{data}=await db.from('candidatos').select('*,vacantes(titulo),resultados_disc(perfil_principal,perfil_secundario)').in('estado',['hired','contratado']).order('updated_at',{ascending:false});
   const lista=data||[];
   document.getElementById('badge-contratados').textContent=lista.length;
   const tbody=document.getElementById('tabla-contratados');
@@ -1133,12 +1146,12 @@ async function adminLogout(){
 async function loadCandidatos(){
   const {data}=await db.from('candidatos').select('*,vacantes(titulo)').order('created_at',{ascending:false});
   candidatos=data||[];
-  const activos=candidatos.filter(c=>c.estado!=='descartado'&&c.estado!=='contratado');
+  const activos=candidatos.filter(c=>!['rejected','hired','descartado','contratado'].includes(c.estado));
   renderCandidatos(activos);
   updateStats(activos);
   document.getElementById('badge-candidatos').textContent=activos.length;
-  document.getElementById('badge-archivo').textContent=candidatos.filter(c=>c.estado==='descartado').length;
-  document.getElementById('badge-contratados').textContent=candidatos.filter(c=>c.estado==='contratado').length;
+  document.getElementById('badge-archivo').textContent=candidatos.filter(c=>['rejected','descartado'].includes(c.estado)).length;
+  document.getElementById('badge-contratados').textContent=candidatos.filter(c=>['hired','contratado'].includes(c.estado)).length;
 }
 
 async function loadVacantes(){
@@ -1388,7 +1401,7 @@ function filtrar(){
   const est=document.getElementById('filter-estado').value;
   const vac=document.getElementById('filter-vacante').value;
   renderCandidatos(candidatos.filter(c=>{
-    if(c.estado==='descartado'||c.estado==='contratado')return false;
+    if(['rejected','hired','descartado','contratado'].includes(c.estado))return false;
     const mq=!q||c.nombre.toLowerCase().includes(q)||c.email.toLowerCase().includes(q);
     const me=!est||c.estado===est;
     const mv=!vac||c.vacante_id===vac;
@@ -1585,7 +1598,7 @@ async function guardar(){
   if(nuevoEstado!==anterior){
     await db.from('historial_estados').insert({candidato_id:actual.id,estado_anterior:anterior,estado_nuevo:nuevoEstado,cambiado_por:'Lucía'});
     // Si se contrata, cerrar la vacante automáticamente
-    if(nuevoEstado==='contratado' && actual.vacante_id){
+    if(['hired','contratado'].includes(nuevoEstado) && actual.vacante_id){
       await db.from('vacantes').update({estado:'cerrada'}).eq('id',actual.vacante_id);
       toast_msg('Candidato contratado — vacante cerrada automáticamente');
     } else {
