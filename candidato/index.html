@@ -608,12 +608,14 @@ async function calcDisc(){
   const tipo=allDiff<=10?'equilibrado':diff>=15?'principal_definido':diff>=8?'principal_con_tendencia':'perfil_combinado';
   const codigo=tipo==='equilibrado'?'DISC':diff<=7?`${primary}${secondary}`:`${primary}(${secondary})`;
 
+  // Borrar DISC previo si existe y reinsertar
+  await dbCand.from('resultados_disc').delete().eq('candidato_id',cand.id);
   const{error:discErr}=await dbCand.from('resultados_disc').insert({
     candidato_id:cand.id,respuestas:discR,
     puntuacion_d:sc.D,puntuacion_i:sc.I,puntuacion_s:sc.S,puntuacion_c:sc.C,
     perfil_principal:primary,perfil_secundario:secondary,tipo_perfil:tipo,informe_html:codigo
   });
-  if(discErr){console.error('DISC insert error:',discErr);alert('Error saving questionnaire. Please try again.');return;}
+  if(discErr){console.error('DISC insert error:',JSON.stringify(discErr));alert('Error saving questionnaire: '+discErr.message);return;}
 
   await dbCand.from('candidatos').update({estado:'tests_completados',updated_at:new Date().toISOString()}).eq('id',cand.id);
   await dbCand.from('historial_estados').insert({candidato_id:cand.id,estado_anterior:cand.estado,estado_nuevo:'tests_completados',cambiado_por:'sistema'});

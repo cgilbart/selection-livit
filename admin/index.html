@@ -692,6 +692,12 @@ td{padding:13px 16px;font-size:12px}
         <option value="">Sin asignar</option>
       </select>
     </div>
+    <div class="form-field">
+      <label class="form-lbl">Prueba técnica</label>
+      <select id="n-prueba" class="modal-select" style="margin-top:0">
+        <option value="">Sin asignar</option>
+      </select>
+    </div>
     <button class="save-btn" onclick="crearCandidato()">Crear candidato</button>
   </div>
 </div>
@@ -1229,10 +1235,12 @@ function renderPruebas(list){
 }
 
 function poblarSelectPruebas(){
-  const sel=document.getElementById('m-prueba-select');
-  if(!sel)return;
-  while(sel.options.length>1)sel.remove(1);
-  pruebas.forEach(p=>sel.appendChild(new Option(p.titulo,p.id)));
+  ['m-prueba-select','n-prueba'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    while(sel.options.length>1)sel.remove(1);
+    pruebas.forEach(p=>sel.appendChild(new Option(p.titulo,p.id)));
+  });
 }
 
 function pDrop(e){
@@ -1384,7 +1392,11 @@ async function abrirCandidato(id){
   if(!actual)return;
   const c=actual;
   document.getElementById('m-nombre').textContent=c.nombre;
-  document.getElementById('m-vacante-label').textContent=c.vacantes?.titulo||vacantes.find(v=>v.id===c.vacante_id)?.titulo||'Sin vacante asignada';
+  // Poblar y setear select de vacante
+  const vacSel=document.getElementById('m-vacante-select');
+  while(vacSel.options.length>1)vacSel.remove(1);
+  vacantes.forEach(v=>vacSel.appendChild(new Option(v.titulo,v.id)));
+  vacSel.value=c.vacante_id||'';
   document.getElementById('m-email').textContent=c.email;
   document.getElementById('m-tel').textContent=c.telefono||'—';
   document.getElementById('m-estado').value=c.estado;
@@ -1583,11 +1595,40 @@ async function crearCandidato(){
   const expires=new Date(Date.now() + 30*24*60*60*1000).toISOString();
   const{data:nuevo,error}=await db.from('candidatos').insert({nombre,email,telefono:tel||null,vacante_id:vac,estado:'preseleccionado',magic_token:token,magic_token_expires_at:expires}).select().single();
   if(error){toast_msg(error.message.includes('unique')?'Este email ya existe':'Error al crear candidato');return}
+  
+  // Asignar prueba técnica si se seleccionó
+  const pruebaId=document.getElementById('n-prueba').value;
+  if(pruebaId&&nuevo?.id){
+    const prueba=pruebas.find(p=>p.id===pruebaId);
+    if(prueba){
+      await db.from('pruebas_tecnicas').insert({
+        candidato_id:nuevo.id,
+        enunciado_url:prueba.archivo_url,
+        instrucciones:prueba.descripcion,
+        biblioteca_prueba_id:pruebaId,
+        fecha_asignacion:new Date().toISOString()
+      });
+      await db.from('candidatos').update({estado:'prueba_asignada'}).eq('id',nuevo.id);
+    }
+  }
+
   toast_msg('Candidato creado — copia su enlace de acceso desde la ficha');
   closeModal('modal-nuevo');
   ['n-nombre','n-email','n-tel'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('n-vacante').value='';
+  document.getElementById('n-prueba').value='';
   await loadCandidatos();
+}
+
+async function cambiarVacante(){
+  if(!actual)return;
+  const vacanteId=document.getElementById('m-vacante-select').value||null;
+  const{error}=await db.from('candidatos').update({vacante_id:vacanteId,updated_at:new Date().toISOString()}).eq('id',actual.id);
+  if(!error){
+    actual.vacante_id=vacanteId;
+    toast_msg('Vacante actualizada');
+    await loadCandidatos();
+  }
 }
 
 function copiarEnlace(){
