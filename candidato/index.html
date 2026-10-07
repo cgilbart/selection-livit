@@ -706,6 +706,7 @@ async function cargarEntregas(){
   const{data}=await dbCand.from('entregas_archivos').select('*').eq('candidato_id',cand.id).order('created_at',{ascending:false});
   const lista=document.getElementById('entrega-archivos-list');
   const wrap=document.getElementById('entrega-lista');
+  if(!lista||!wrap)return;
   if(!data||data.length===0){wrap.style.display='none';return;}
   wrap.style.display='block';
   lista.innerHTML=data.map(a=>`
