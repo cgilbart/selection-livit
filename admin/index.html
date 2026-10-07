@@ -440,9 +440,9 @@ td{padding:13px 16px;font-size:12px}
         <select class="filter-select" id="filter-estado" onchange="filtrar()">
           <option value="">Todos los estados</option>
           <option value="invited">Invitado</option>
-          <option value="assessment">En assessment</option>
+          <option value="assessment">En evaluación</option>
           <option value="under_review">En revisión</option>
-          <option value="interview">Entrevista</option>
+          <option value="interview">Entrevista técnica</option>
           <option value="offer">Oferta</option>
         </select>
         <select class="filter-select" id="filter-vacante" onchange="filtrar()">
@@ -656,9 +656,9 @@ td{padding:13px 16px;font-size:12px}
       <div class="field-lbl">Estado del proceso</div>
       <select class="modal-select" id="m-estado">
         <option value="invited">Invitado</option>
-        <option value="assessment">En assessment</option>
+        <option value="assessment">En evaluación</option>
         <option value="under_review">En revisión</option>
-        <option value="interview">Entrevista</option>
+        <option value="interview">Entrevista técnica</option>
         <option value="offer">Oferta</option>
         <option value="hired">Contratado</option>
         <option value="rejected">Descartado</option>
@@ -896,11 +896,11 @@ let candidatos=[],vacantes=[],pruebas=[],actual=null,pruebaFileReady=null;
 
 const labels={
   // Nuevos estados
-  invited:'Invitado',assessment:'En assessment',under_review:'En revisión',
-  interview:'Entrevista',offer:'Oferta',hired:'Contratado',rejected:'Descartado',
+  invited:'Invitado',assessment:'En evaluación',under_review:'En revisión',
+  interview:'Entrevista técnica',offer:'Oferta',hired:'Contratado',rejected:'Descartado',
   // Estados anteriores (compatibilidad)
-  preseleccionado:'Invitado',perfil_incompleto:'En assessment',
-  tests_completados:'En revisión',prueba_asignada:'En assessment',
+  preseleccionado:'Invitado',perfil_incompleto:'En evaluación',
+  tests_completados:'En revisión',prueba_asignada:'En evaluación',
   prueba_entregada:'En revisión',entrevista_tecnica:'Entrevista',
   oferta:'Oferta',contratado:'Contratado',descartado:'Descartado'
 };
