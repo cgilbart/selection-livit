@@ -571,6 +571,13 @@ td{padding:13px 16px;font-size:12px}
     </div>
 
     <div class="field-block">
+      <div class="field-lbl">Vacante</div>
+      <select class="modal-select" id="m-vacante-select" onchange="cambiarVacante()" style="margin-top:0">
+        <option value="">Sin asignar</option>
+      </select>
+    </div>
+
+    <div class="field-block">
       <div class="field-lbl">Currículum</div>
       <div id="m-cv-exists" style="display:none" class="cv-exists">
         <div class="cv-exists-name">📄 <span id="m-cv-nombre">CV.pdf</span></div>
@@ -1393,11 +1400,13 @@ async function abrirCandidato(id){
   const c=actual;
   document.getElementById('m-nombre').textContent=c.nombre;
   document.getElementById('m-vacante-label').textContent=c.vacantes?.titulo||vacantes.find(v=>v.id===c.vacante_id)?.titulo||'Sin vacante asignada';
-  // Poblar y setear select de vacante
+  // Poblar y setear select de vacante si existe
   const vacSel=document.getElementById('m-vacante-select');
-  while(vacSel.options.length>1)vacSel.remove(1);
-  vacantes.forEach(v=>vacSel.appendChild(new Option(v.titulo,v.id)));
-  vacSel.value=c.vacante_id||'';
+  if(vacSel){
+    while(vacSel.options.length>1)vacSel.remove(1);
+    vacantes.forEach(v=>vacSel.appendChild(new Option(v.titulo,v.id)));
+    vacSel.value=c.vacante_id||'';
+  }
   document.getElementById('m-email').textContent=c.email;
   document.getElementById('m-tel').textContent=c.telefono||'—';
   document.getElementById('m-estado').value=c.estado;
@@ -1623,7 +1632,9 @@ async function crearCandidato(){
 
 async function cambiarVacante(){
   if(!actual)return;
-  const vacanteId=document.getElementById('m-vacante-select').value||null;
+  const sel=document.getElementById('m-vacante-select');
+  if(!sel)return;
+  const vacanteId=sel.value||null;
   const{error}=await db.from('candidatos').update({vacante_id:vacanteId,updated_at:new Date().toISOString()}).eq('id',actual.id);
   if(!error){
     actual.vacante_id=vacanteId;
