@@ -507,7 +507,7 @@ td{padding:13px 16px;font-size:12px}
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Título</th><th>Vacante</th><th>Archivo</th><th>Asignaciones</th><th>Creada</th></tr>
+            <tr><th>Título</th><th>Vacante</th><th>Archivo</th><th>Candidatos</th><th>Creada</th><th></th></tr>
           </thead>
           <tbody id="tabla-pruebas">
             <tr><td colspan="5" class="loading">Cargando pruebas...</td></tr>
@@ -628,28 +628,21 @@ td{padding:13px 16px;font-size:12px}
 
     <div class="field-block">
       <div class="field-lbl">Prueba técnica</div>
-      <div id="m-prueba-asignada" style="display:none">
-        <div class="cv-exists" style="margin-top:0">
-          <div class="cv-exists-name">📋 <span id="m-prueba-nombre">—</span></div>
-          <div class="cv-exists-actions">
-            <button class="cv-action-btn cv-btn-dl" onclick="descargarPrueba()">Ver</button>
-            <button class="cv-action-btn" style="background:rgba(90,170,232,.15);color:var(--blue)" onclick="document.getElementById('reemplazar-enunciado-input').click()">Cambiar</button>
-            <button class="cv-action-btn cv-btn-rm" onclick="desasignarPrueba()">Quitar</button>
-          </div>
-          <input type="file" id="reemplazar-enunciado-input" accept=".pdf" style="display:none" onchange="reemplazarEnunciado(this.files[0])">
-        </div>
-        <div id="m-entrega-candidato" style="margin-top:8px;display:none">
-          <div class="prueba-action-label" style="font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px">📤 Entregas del candidato</div>
-          <div id="m-entrega-lista"></div>
-        </div>
+      <!-- Prueba asignada -->
+      <div id="m-prueba-asignada" style="display:none;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">📋 <span id="m-prueba-nombre">—</span></div>
       </div>
-      <div id="m-prueba-selector" style="display:none">
-        <select class="modal-select" id="m-prueba-select" style="margin-top:0">
-          <option value="">Selecciona una prueba de la biblioteca...</option>
-        </select>
-        <button class="save-btn" style="margin-top:8px;background:rgba(255,255,255,.06);color:var(--muted);box-shadow:none;border:1px solid var(--border2)" onclick="asignarPrueba()">Asignar prueba</button>
+      <!-- Selector para asignar/cambiar prueba -->
+      <select class="modal-select" id="m-prueba-select" style="margin-top:0">
+        <option value="">Sin prueba asignada</option>
+      </select>
+      <button class="save-btn" style="margin-top:8px;background:rgba(255,255,255,.06);color:var(--muted);box-shadow:none;border:1px solid var(--border2)" onclick="asignarPrueba()">Guardar prueba</button>
+      <!-- Entregas del candidato -->
+      <div id="m-entrega-candidato" style="margin-top:12px;display:none">
+        <div class="prueba-action-label" style="font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px">📤 Entregas del candidato</div>
+        <div id="m-entrega-lista"></div>
       </div>
-      <div id="m-prueba-vacia" style="font-size:12px;color:var(--muted2);font-weight:600;margin-top:6px">No asignada</div>
+      <div id="m-prueba-vacia" style="font-size:12px;color:var(--muted2);font-weight:600;margin-top:6px;display:none">No asignada</div>
     </div>
 
     <hr class="divider">
@@ -1252,9 +1245,14 @@ function renderPruebas(list){
     <tr>
       <td><div class="td-name">${p.titulo}</div>${p.descripcion?`<div class="td-email">${p.descripcion.substring(0,60)}${p.descripcion.length>60?'...':''}</div>`:''}</td>
       <td>${p.vacantes?`<span class="vac-tag">${p.vacantes.titulo}</span>`:'<span style="color:var(--muted2);font-size:11px">Cualquier vacante</span>'}</td>
-      <td style="display:flex;align-items:center;gap:8px">
-        ${p.archivo_url?`<button onclick="verPruebaBiblioteca('${p.archivo_url}')" class="field-link" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--pink)">📄 ${p.archivo_nombre||'Ver PDF'}</button>`:'<span style="color:var(--red);font-size:11px">Sin archivo</span>'}
-        <button onclick="event.stopPropagation();eliminarPruebaBiblioteca('${p.id}','${p.archivo_url||''}')" style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;border:1px solid rgba(255,82,82,.2);background:rgba(255,82,82,.08);color:var(--red);cursor:pointer;margin-left:4px">Borrar</button>
+      <td>
+        ${p.archivo_url?`<button onclick="verPruebaBiblioteca('${p.archivo_url}')" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--pink)">📄 ${p.archivo_nombre||'Ver'}</button>`:'<span style="color:var(--red);font-size:11px">Sin archivo</span>'}
+        <label style="font-size:10px;font-weight:700;color:var(--blue);cursor:pointer;margin-left:8px;padding:2px 6px;border:1px solid rgba(90,170,232,.3);border-radius:4px">
+          Cambiar<input type="file" accept=".pdf" style="display:none" onchange="cambiarArchivoPrueba('${p.id}',this.files[0])">
+        </label>
+      </td>
+      <td>
+        <button onclick="event.stopPropagation();eliminarPruebaBiblioteca('${p.id}','${p.archivo_url||''}')" style="font-size:14px;background:none;border:none;cursor:pointer;color:var(--red);opacity:.6" title="Eliminar prueba">✕</button>
       </td>
       <td style="color:var(--muted);font-size:12px;font-weight:600">${candidatos.filter(c=>c.prueba_id===p.id||false).length} asignaciones</td>
       <td class="td-date">${fmt(p.created_at)}</td>
@@ -1390,9 +1388,27 @@ async function eliminarPruebaBiblioteca(id, url){
     const path=decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]);
     await db.storage.from('pruebas').remove([path]);
   }
+  // Desasignar de candidatos que la tengan
+  await db.from('pruebas_tecnicas').update({biblioteca_prueba_id:null}).eq('biblioteca_prueba_id',id);
   // Borrar de biblioteca
-  await db.from('biblioteca_pruebas').delete().eq('id',id);
+  const{error}=await db.from('biblioteca_pruebas').delete().eq('id',id);
+  if(error){toast_msg('Error al eliminar: '+error.message);return;}
   toast_msg('Prueba eliminada');
+  await loadPruebas();
+}
+
+async function cambiarArchivoPrueba(id, file){
+  if(!file||file.type!=='application/pdf'){toast_msg('Solo se aceptan archivos PDF');return;}
+  toast_msg('Subiendo...');
+  const path=`${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+  const{error}=await db.storage.from('pruebas').upload(path,file);
+  if(error){toast_msg('Error al subir el archivo');return;}
+  const{data:urlData}=db.storage.from('pruebas').getPublicUrl(path);
+  await db.from('biblioteca_pruebas').update({
+    archivo_url:urlData?.publicUrl,
+    archivo_nombre:file.name
+  }).eq('id',id);
+  toast_msg('Archivo actualizado');
   await loadPruebas();
 }
 
@@ -1481,12 +1497,13 @@ async function abrirCandidato(id){
   // Prueba
   const{data:prueba}=await db.from('pruebas_tecnicas').select('*,biblioteca_pruebas(titulo)').eq('candidato_id',id).maybeSingle();
   const elAsignada=document.getElementById('m-prueba-asignada');
-  const elSelector=document.getElementById('m-prueba-selector');
   const elVacia=document.getElementById('m-prueba-vacia');
   const elEntrega=document.getElementById('m-entrega-candidato');
+  poblarSelectPruebas();
   if(prueba){
-    elAsignada.style.display='block';elSelector.style.display='none';elVacia.style.display='none';
+    elAsignada.style.display='block';elVacia.style.display='none';
     document.getElementById('m-prueba-nombre').textContent=prueba.biblioteca_pruebas?.titulo||'Prueba asignada';
+    document.getElementById('m-prueba-select').value=prueba.biblioteca_prueba_id||'';
     // Cargar archivos de entregas
     const{data:entregas}=await db.from('entregas_archivos').select('*').eq('candidato_id',id).order('created_at',{ascending:false});
     if(entregas&&entregas.length>0){
@@ -1522,9 +1539,8 @@ async function abrirCandidato(id){
       elEntrega.style.display='none';
     }
   } else {
-    elAsignada.style.display='none';elVacia.style.display='none';
-    elSelector.style.display='block';
-    poblarSelectPruebas();
+    elAsignada.style.display='none';
+    document.getElementById('m-prueba-select').value='';
   }
 
   // Historial
