@@ -1392,6 +1392,7 @@ async function abrirCandidato(id){
   if(!actual)return;
   const c=actual;
   document.getElementById('m-nombre').textContent=c.nombre;
+  document.getElementById('m-vacante-label').textContent=c.vacantes?.titulo||vacantes.find(v=>v.id===c.vacante_id)?.titulo||'Sin vacante asignada';
   // Poblar y setear select de vacante
   const vacSel=document.getElementById('m-vacante-select');
   while(vacSel.options.length>1)vacSel.remove(1);
