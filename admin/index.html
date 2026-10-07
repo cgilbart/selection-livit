@@ -952,7 +952,8 @@ const PERFILES_COMBINADOS={
 
 async function abrirInformeDisc(){
   if(!actual)return;
-  const{data:disc}=await db.from('resultados_disc').select('*').eq('candidato_id',actual.id).maybeSingle();
+  const{data:discArr2}=await db.from('resultados_disc').select('*').eq('candidato_id',actual.id).order('created_at',{ascending:false}).limit(1);
+  const disc=discArr2?.[0]||null;
   if(!disc)return;
 
   const overlay=document.getElementById('disc-informe-overlay');
@@ -1085,6 +1086,7 @@ async function restaurarCandidato(id){
 async function borrarCandidato(){
   if(!actual)return;
   if(!confirm(`¿Eliminar permanentemente a ${actual.nombre}? Esta acción no se puede deshacer.`))return;
+  await db.from('entregas_archivos').delete().eq('candidato_id',actual.id);
   await db.from('historial_estados').delete().eq('candidato_id',actual.id);
   await db.from('resultados_disc').delete().eq('candidato_id',actual.id);
   await db.from('pruebas_tecnicas').delete().eq('candidato_id',actual.id);
@@ -1416,7 +1418,8 @@ async function abrirCandidato(id){
   renderCV(c);
 
   // DISC
-  const{data:disc}=await db.from('resultados_disc').select('*').eq('candidato_id',id).maybeSingle();
+  const{data:discArr}=await db.from('resultados_disc').select('*').eq('candidato_id',id).order('created_at',{ascending:false}).limit(1);
+  const disc=discArr?.[0]||null;
   if(disc){
     document.getElementById('m-disc-perfil').innerHTML=`<svg width="10" height="10" viewBox="0 0 24 24" fill="var(--pink)"><circle cx="12" cy="12" r="10"/></svg> Perfil ${disc.perfil_principal||''}${disc.perfil_secundario?'('+disc.perfil_secundario+')':''} — ${disc.tipo_perfil||''}`;
     document.getElementById('m-disc-bars').innerHTML=['D','I','S','C'].map(d=>`
