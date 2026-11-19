@@ -907,7 +907,9 @@ const labels={
 };
 
 async function init(){
-  await Promise.all([loadCandidatos(),loadVacantes(),loadPruebas(),loadCategorias()]);
+  await Promise.all([loadCategorias(),loadPruebas()]);
+  await loadVacantes();
+  await loadCandidatos();
 }
 
 async function loadCandidatos(){
@@ -920,6 +922,7 @@ async function loadCandidatos(){
   updateStats(candidatos);
   document.getElementById('badge-candidatos').textContent=candidatos.length;
   document.getElementById('badge-archivo').textContent=archivados.length;
+  if(vacantes.length)renderVacantes(vacantes);
 }
 
 async function loadVacantes(){
@@ -1478,10 +1481,9 @@ async function crearVacante(){
   const {data:existentes}=await db.from('vacantes').select('id').eq('categoria_id',catId);
   const n=((existentes?.length||0)+1).toString().padStart(3,'0');
   const codigo_vacante=`${cat.prefijo}-${n}`;
-  const catIdReal=catId.startsWith('cat-')?null:catId;
   const{error}=await db.from('vacantes').insert({
     titulo,
-    categoria_id:catIdReal,
+    categoria_id:catId,
     codigo_vacante,
     descripcion:document.getElementById('v-desc').value.trim()||null,
     perfil_disc_ideal:document.getElementById('v-disc').value.trim()||null
