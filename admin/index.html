@@ -160,21 +160,6 @@ td{padding:13px 16px;font-size:12px}
 .b-entrevista_tecnica .badge-dot{background:var(--pink)}
 .b-oferta{background:rgba(74,200,130,.15);color:var(--green);border:1px solid rgba(74,200,130,.3)}
 .b-oferta .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
-.b-contratado,.b-hired{background:rgba(74,200,130,.15);color:var(--green);border:1px solid rgba(74,200,130,.3)}
-.b-contratado .badge-dot,.b-hired .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
-.b-invited{background:rgba(90,170,232,.12);color:var(--blue);border:1px solid rgba(90,170,232,.2)}
-.b-invited .badge-dot{background:var(--blue)}
-.b-assessment{background:rgba(255,202,40,.1);color:var(--amber);border:1px solid rgba(255,202,40,.2)}
-.b-assessment .badge-dot{background:var(--amber)}
-.b-under_review{background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.2)}
-.b-under_review .badge-dot{background:var(--purple)}
-.b-interview{background:rgba(230,0,126,.1);color:var(--pink);border:1px solid rgba(230,0,126,.2)}
-.b-interview .badge-dot{background:var(--pink)}
-.b-offer{background:rgba(74,200,130,.15);color:var(--green);border:1px solid rgba(74,200,130,.3)}
-.b-offer .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
-.b-rejected{background:rgba(255,82,82,.08);color:var(--red);border:1px solid rgba(255,82,82,.2)}
-.b-rejected .badge-dot{background:var(--red)}
-.b-contratado .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
 .b-descartado{background:rgba(255,82,82,.08);color:var(--red);border:1px solid rgba(255,82,82,.2)}
 .b-descartado .badge-dot{background:var(--red)}
 
@@ -314,6 +299,32 @@ td{padding:13px 16px;font-size:12px}
 .cv-btn-rm{background:rgba(255,82,82,.1);color:var(--red)}
 .cv-btn-rm:hover{background:rgba(255,82,82,.2)}
 
+/* AJUSTES */
+.ajustes-section{margin-bottom:32px}
+.ajustes-title{font-size:14px;font-weight:800;color:var(--cream);margin-bottom:4px}
+.ajustes-sub{font-size:11px;color:var(--muted);margin-bottom:16px;font-weight:500}
+.categoria-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;margin-bottom:6px;
+}
+.categoria-info{display:flex;align-items:center;gap:10px}
+.categoria-prefijo{font-size:10px;font-weight:800;padding:3px 7px;border-radius:6px;background:rgba(230,0,126,.12);color:var(--pink);letter-spacing:.5px}
+.categoria-nombre{font-size:12px;font-weight:700;color:var(--cream)}
+.categoria-del{font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;background:rgba(255,82,82,.1);color:var(--red);border:none;cursor:pointer;font-family:var(--font);transition:all .15s}
+.categoria-del:hover{background:rgba(255,82,82,.2)}
+.add-cat-form{display:flex;gap:8px;margin-top:12px}
+.add-cat-form .form-input{margin-bottom:0}
+.codigo-preview{font-size:10px;font-weight:700;color:var(--muted2);margin-top:4px;letter-spacing:.5px;min-height:16px}
+
+/* ARCHIVO */
+.archivo-banner{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;background:rgba(255,82,82,.06);
+  border:1px solid rgba(255,82,82,.15);border-radius:10px;
+  margin-bottom:20px;font-size:12px;font-weight:600;color:var(--red);
+}
+
 @media(max-width:900px){
   .sidebar{width:56px;padding:12px 6px}
   .nav-item span,.nav-section-label,.nav-badge{display:none}
@@ -333,23 +344,14 @@ td{padding:13px 16px;font-size:12px}
 <!-- HEADER -->
 <header>
   <div class="logo">
-    <div class="logo-name" style="display:flex;align-items:center;color:var(--cream)"><svg height="16" viewBox="0 0 2000 889" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
-<path d="M510.352 0H304.334V197.401H510.352V0Z" fill="currentColor"/>
-<path d="M203.377 0H0V888.249H203.377V0Z" fill="currentColor"/>
-<path d="M509.022 296.661H305.625V888.268H509.022V296.661Z" fill="currentColor"/>
-<path d="M1547.11 296.661H1343.74V888.268H1547.11V296.661Z" fill="currentColor"/>
-<path d="M1852.78 493.465H2000V296.661H1852.78V0H1649.4V888.249H1852.78V493.465Z" fill="currentColor"/>
-<path d="M1152.91 592.166L1270.04 296.661H1050.53L931.276 592.166H1152.91Z" fill="currentColor"/>
-<path d="M800.922 296.661H581.409L816.517 888.249H1040.25L800.922 296.661Z" fill="currentColor"/>
-<path d="M1548.44 0H1342.41V197.401H1548.44V0Z" fill="currentColor"/>
-</svg></div>
+    <div class="logo-name">Livit</div>
     <div class="logo-div"></div>
     <div class="logo-sub">Selección</div>
   </div>
   <div style="display:flex;align-items:center;gap:16px">
     <div class="live-lbl"><div class="live-dot"></div><span id="live-count">0 candidatos activos</span></div>
     <div class="hdr-r">
-      <div class="own-av" onclick="adminLogout()" title="Cerrar sesión">L</div>
+      <div class="own-av">L</div>
     </div>
   </div>
 </header>
@@ -374,19 +376,17 @@ td{padding:13px 16px;font-size:12px}
       <span>Pruebas técnicas</span>
       <span class="nav-badge" id="badge-pruebas">0</span>
     </button>
-    <div class="nav-section-label" style="margin-top:8px">Archivo</div>
     <button class="nav-item" onclick="showView('archivo')">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
       <span>Archivo</span>
-      <span class="nav-badge" id="badge-archivo">0</span>
-    </button>
-    <button class="nav-item" onclick="showView('contratados')">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      <span>Contratados</span>
-      <span class="nav-badge" id="badge-contratados">0</span>
+      <span class="nav-badge" id="badge-archivo" style="background:rgba(255,82,82,.15);color:var(--red)">0</span>
     </button>
     <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border)">
-      <div style="padding:8px 10px;font-size:10px;font-weight:600;color:var(--muted2)">
+      <button class="nav-item" onclick="showView('ajustes')" style="margin-bottom:0">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Ajustes</span>
+      </button>
+      <div style="padding:8px 10px;font-size:10px;font-weight:600;color:var(--muted2);margin-top:4px">
         <div style="color:var(--muted);font-weight:700;font-size:11px">Lucía</div>
         <div style="margin-top:1px">Administrador</div>
       </div>
@@ -422,7 +422,7 @@ td{padding:13px 16px;font-size:12px}
         </div>
         <div class="stat-card">
           <div class="stat-label">Pruebas</div>
-          <div class="stat-value" id="stat-pruebas">—</div>
+          <div class="stat-value" id="stat-pruebas-stat">—</div>
           <div class="stat-sub">entregadas</div>
         </div>
         <div class="stat-card">
@@ -435,15 +435,17 @@ td{padding:13px 16px;font-size:12px}
       <div class="filters-bar">
         <div class="search-wrap">
           <svg class="search-icon" width="13" height="13" fill="none" stroke="#F8EEE7" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input class="search-input" type="text" placeholder="Buscar candidato..." oninput="filtrar()" id="search-input">
+          <input class="search-input" type="text" placeholder="Buscar por nombre, email o teléfono..." oninput="filtrar()" id="search-input">
         </div>
         <select class="filter-select" id="filter-estado" onchange="filtrar()">
           <option value="">Todos los estados</option>
-          <option value="invited">Invitado</option>
-          <option value="assessment">En evaluación</option>
-          <option value="under_review">En revisión</option>
-          <option value="interview">Entrevista técnica</option>
-          <option value="offer">Oferta</option>
+          <option value="preseleccionado">Preseleccionado</option>
+          <option value="perfil_incompleto">Perfil incompleto</option>
+          <option value="tests_completados">Tests completados</option>
+          <option value="prueba_asignada">Prueba asignada</option>
+          <option value="prueba_entregada">Prueba entregada</option>
+          <option value="entrevista_tecnica">Entrevista técnica</option>
+          <option value="oferta">Oferta</option>
         </select>
         <select class="filter-select" id="filter-vacante" onchange="filtrar()">
           <option value="">Todas las vacantes</option>
@@ -480,13 +482,28 @@ td{padding:13px 16px;font-size:12px}
           Nueva vacante
         </button>
       </div>
+      <div class="filters-bar">
+        <div class="search-wrap">
+          <svg class="search-icon" width="13" height="13" fill="none" stroke="#F8EEE7" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" type="text" placeholder="Buscar vacante..." oninput="filtrarVacantes()" id="search-vacantes">
+        </div>
+        <select class="filter-select" id="filter-cat-vacante" onchange="filtrarVacantes()">
+          <option value="">Todas las categorías</option>
+        </select>
+        <select class="filter-select" id="filter-estado-vacante" onchange="filtrarVacantes()">
+          <option value="">Todos los estados</option>
+          <option value="abierta">Abierta</option>
+          <option value="cerrada">Cerrada</option>
+          <option value="pausada">Pausada</option>
+        </select>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Puesto</th><th>Equipo</th><th>Estado</th><th>Candidatos</th><th>Creada</th></tr>
+            <tr><th>Puesto</th><th>Código</th><th>Categoría</th><th>Estado</th><th>Candidatos</th><th>Creada</th></tr>
           </thead>
           <tbody id="tabla-vacantes">
-            <tr><td colspan="5" class="loading">Cargando vacantes...</td></tr>
+            <tr><td colspan="6" class="loading">Cargando vacantes...</td></tr>
           </tbody>
         </table>
       </div>
@@ -507,30 +524,10 @@ td{padding:13px 16px;font-size:12px}
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Título</th><th>Vacante</th><th>Archivo</th><th>Creada</th></tr>
+            <tr><th>Título</th><th>Vacante</th><th>Archivo</th><th>Asignaciones</th><th>Creada</th></tr>
           </thead>
           <tbody id="tabla-pruebas">
             <tr><td colspan="5" class="loading">Cargando pruebas...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- VISTA CONTRATADOS -->
-    <div id="view-contratados" style="display:none">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Contratados</div>
-          <div class="page-subtitle">Candidatos que se han incorporado a Livit</div>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Candidato</th><th>Vacante</th><th>Perfil DISC</th><th>Contratado</th></tr>
-          </thead>
-          <tbody id="tabla-contratados">
-            <tr><td colspan="4" class="loading">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -540,19 +537,46 @@ td{padding:13px 16px;font-size:12px}
     <div id="view-archivo" style="display:none">
       <div class="page-header">
         <div>
-          <div class="page-title">Biblioteca de candidatos</div>
-          <div class="page-subtitle">Candidatos descartados — archivados para futura referencia</div>
+          <div class="page-title">Archivo</div>
+          <div class="page-subtitle">Candidatos descartados del proceso</div>
         </div>
+      </div>
+      <div class="archivo-banner">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Los candidatos archivados no aparecen en la lista principal. Puedes recuperarlos y asignarlos a cualquier vacante.
       </div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Candidato</th><th>Vacante</th><th>DISC</th><th>Descartado</th><th></th></tr>
+            <tr><th>Candidato</th><th>Última vacante</th><th>Archivado</th><th>Acción</th></tr>
           </thead>
           <tbody id="tabla-archivo">
-            <tr><td colspan="5" class="loading">Cargando...</td></tr>
+            <tr><td colspan="4" class="loading">Cargando archivo...</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- VISTA AJUSTES -->
+    <div id="view-ajustes" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Ajustes</div>
+          <div class="page-subtitle">Configuración de la plataforma</div>
+        </div>
+      </div>
+
+      <div class="ajustes-section">
+        <div class="ajustes-title">Categorías de vacantes</div>
+        <div class="ajustes-sub">Las categorías generan automáticamente el código de cada vacante (ej. DESIGN-001, AL-003).</div>
+        <div id="lista-categorias">
+          <div class="loading" style="padding:20px">Cargando categorías...</div>
+        </div>
+        <div class="add-cat-form" style="margin-top:16px">
+          <input type="text" id="nueva-cat-nombre" class="form-input" placeholder="Nombre (ej. Design)" style="flex:2">
+          <input type="text" id="nueva-cat-prefijo" class="form-input" placeholder="Prefijo (ej. DESIGN)" style="flex:1;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+          <button class="btn btn-primary" onclick="crearCategoria()" style="flex-shrink:0">Añadir</button>
+        </div>
       </div>
     </div>
 
@@ -582,10 +606,13 @@ td{padding:13px 16px;font-size:12px}
     </div>
 
     <div class="field-block">
-      <div class="field-lbl">Vacante</div>
-      <select class="modal-select" id="m-vacante-select" onchange="cambiarVacante()" style="margin-top:0">
-        <option value="">Sin asignar</option>
-      </select>
+      <div class="field-lbl">LinkedIn</div>
+      <div id="m-linkedin">—</div>
+    </div>
+
+    <div class="field-block">
+      <div class="field-lbl">Presentación</div>
+      <div class="field-val" id="m-presentacion" style="font-size:12px;line-height:1.6">—</div>
     </div>
 
     <div class="field-block">
@@ -619,30 +646,34 @@ td{padding:13px 16px;font-size:12px}
         <span style="opacity:.4">Sin completar</span>
       </div>
       <div class="disc-bars" id="m-disc-bars"></div>
-      <button id="m-disc-btn-informe" onclick="abrirInformeDisc()" style="display:none;margin-top:12px;width:100%;padding:8px;background:rgba(230,0,126,.1);color:var(--pink);border:1px solid rgba(230,0,126,.2);border-radius:8px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:all .15s">
-        Ver informe completo →
-      </button>
     </div>
 
     <hr class="divider">
 
     <div class="field-block">
       <div class="field-lbl">Prueba técnica</div>
-      <!-- Prueba asignada -->
-      <div id="m-prueba-asignada" style="display:none;margin-bottom:8px">
-        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">📋 <span id="m-prueba-nombre">—</span></div>
+      <div id="m-prueba-asignada" style="display:none">
+        <div class="cv-exists" style="margin-top:0">
+          <div class="cv-exists-name">📋 <span id="m-prueba-nombre">—</span></div>
+          <div class="cv-exists-actions">
+            <button class="cv-action-btn cv-btn-dl" onclick="descargarPrueba()">Ver</button>
+            <button class="cv-action-btn cv-btn-rm" onclick="desasignarPrueba()">Quitar</button>
+          </div>
+        </div>
+        <div id="m-entrega-candidato" style="margin-top:8px;display:none">
+          <div class="prueba-action">
+            <span class="prueba-action-label">📤 Entrega del candidato</span>
+            <a class="field-link" id="m-entrega-link" href="#" target="_blank">Descargar</a>
+          </div>
+        </div>
       </div>
-      <!-- Selector para asignar/cambiar prueba -->
-      <select class="modal-select" id="m-prueba-select" style="margin-top:0">
-        <option value="">Sin prueba asignada</option>
-      </select>
-      <button class="save-btn" style="margin-top:8px;background:rgba(255,255,255,.06);color:var(--muted);box-shadow:none;border:1px solid var(--border2)" onclick="asignarPrueba()">Guardar prueba</button>
-      <!-- Entregas del candidato -->
-      <div id="m-entrega-candidato" style="margin-top:12px;display:none">
-        <div class="prueba-action-label" style="font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px">📤 Entregas del candidato</div>
-        <div id="m-entrega-lista"></div>
+      <div id="m-prueba-selector" style="display:none">
+        <select class="modal-select" id="m-prueba-select" style="margin-top:0">
+          <option value="">Selecciona una prueba de la biblioteca...</option>
+        </select>
+        <button class="save-btn" style="margin-top:8px;background:rgba(255,255,255,.06);color:var(--muted);box-shadow:none;border:1px solid var(--border2)" onclick="asignarPrueba()">Asignar prueba</button>
       </div>
-      <div id="m-prueba-vacia" style="font-size:12px;color:var(--muted2);font-weight:600;margin-top:6px;display:none">No asignada</div>
+      <div id="m-prueba-vacia" style="font-size:12px;color:var(--muted2);font-weight:600;margin-top:6px">No asignada</div>
     </div>
 
     <hr class="divider">
@@ -650,13 +681,21 @@ td{padding:13px 16px;font-size:12px}
     <div class="field-block">
       <div class="field-lbl">Estado del proceso</div>
       <select class="modal-select" id="m-estado">
-        <option value="invited">Invitado</option>
-        <option value="assessment">En evaluación</option>
-        <option value="under_review">En revisión</option>
-        <option value="interview">Entrevista técnica</option>
-        <option value="offer">Oferta</option>
-        <option value="hired">Contratado</option>
-        <option value="rejected">Descartado</option>
+        <option value="preseleccionado">Preseleccionado</option>
+        <option value="perfil_incompleto">Perfil incompleto</option>
+        <option value="tests_completados">Tests completados</option>
+        <option value="prueba_asignada">Prueba asignada</option>
+        <option value="prueba_entregada">Prueba entregada</option>
+        <option value="entrevista_tecnica">Entrevista técnica</option>
+        <option value="oferta">Oferta</option>
+        <option value="descartado">Descartado</option>
+      </select>
+    </div>
+
+    <div class="field-block">
+      <div class="field-lbl">Vacante asignada</div>
+      <select class="modal-select" id="m-vacante-select">
+        <option value="">Sin vacante</option>
       </select>
     </div>
 
@@ -666,8 +705,7 @@ td{padding:13px 16px;font-size:12px}
     </div>
 
     <button class="save-btn" onclick="guardar()">Guardar cambios</button>
-    <button class="reinvitar-btn" onclick="copiarEnlace()">🔗 Copiar enlace de acceso</button>
-    <button class="reinvitar-btn" style="color:var(--red);border-color:rgba(255,82,82,.2);margin-top:4px" onclick="borrarCandidato()">🗑 Eliminar candidato permanentemente</button>
+    <button class="reinvitar-btn" onclick="toast_msg('Función disponible próximamente')">📧 Reenviar invitación</button>
 
     <hr class="divider">
 
@@ -675,6 +713,41 @@ td{padding:13px 16px;font-size:12px}
       <div class="field-lbl">Historial de estados</div>
       <div id="m-historial" style="margin-top:10px"></div>
     </div>
+  </div>
+</div>
+
+<!-- MODAL CANDIDATO ARCHIVADO -->
+<div class="modal-overlay" id="modal-archivado">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div>
+        <div class="modal-name" id="ma-nombre">—</div>
+        <div class="modal-role" style="color:var(--red)">Candidato archivado</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-archivado')">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+      <div class="field-block">
+        <div class="field-lbl">Email</div>
+        <div class="field-val" id="ma-email">—</div>
+      </div>
+      <div class="field-block">
+        <div class="field-lbl">Teléfono</div>
+        <div class="field-val" id="ma-tel">—</div>
+      </div>
+    </div>
+    <div class="field-block">
+      <div class="field-lbl">Notas internas</div>
+      <div class="field-val" id="ma-notas" style="font-size:12px;line-height:1.6">—</div>
+    </div>
+    <hr class="divider">
+    <div class="field-block">
+      <div class="field-lbl">Recuperar candidato — asignar a vacante</div>
+      <select class="modal-select" id="ma-vacante-recuperar" style="margin-top:0">
+        <option value="">Sin vacante asignada</option>
+      </select>
+    </div>
+    <button class="save-btn" onclick="recuperarCandidato()">↩ Recuperar candidato</button>
   </div>
 </div>
 
@@ -703,12 +776,6 @@ td{padding:13px 16px;font-size:12px}
         <option value="">Sin asignar</option>
       </select>
     </div>
-    <div class="form-field">
-      <label class="form-lbl">Prueba técnica</label>
-      <select id="n-prueba" class="modal-select" style="margin-top:0">
-        <option value="">Sin asignar</option>
-      </select>
-    </div>
     <button class="save-btn" onclick="crearCandidato()">Crear candidato</button>
   </div>
 </div>
@@ -721,12 +788,15 @@ td{padding:13px 16px;font-size:12px}
       <button class="modal-close" onclick="closeModal('modal-vacante')">✕</button>
     </div>
     <div class="form-field">
-      <label class="form-lbl">Título del puesto *</label>
-      <input type="text" id="v-titulo" class="form-input" placeholder="Product Designer">
+      <label class="form-lbl">Categoría *</label>
+      <select id="v-categoria" class="modal-select" style="margin-top:0" onchange="actualizarCodigoPreview()">
+        <option value="">Selecciona una categoría...</option>
+      </select>
+      <div class="codigo-preview" id="codigo-preview"></div>
     </div>
     <div class="form-field">
-      <label class="form-lbl">Equipo</label>
-      <input type="text" id="v-equipo" class="form-input" placeholder="Producto, Tech, Operaciones...">
+      <label class="form-lbl">Título del puesto *</label>
+      <input type="text" id="v-titulo" class="form-input" placeholder="Product Designer">
     </div>
     <div class="form-field">
       <label class="form-lbl">Descripción</label>
@@ -778,375 +848,46 @@ td{padding:13px 16px;font-size:12px}
   </div>
 </div>
 
-<!-- LOGIN OVERLAY -->
-<div id="login-overlay" style="
-  display:none;position:fixed;inset:0;z-index:999;
-  background:var(--bg);display:flex;align-items:center;justify-content:center;
-">
-  <div style="width:100%;max-width:380px;padding:32px">
-    <div style="margin-bottom:32px">
-      <svg height="20" viewBox="0 0 2000 889" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M510.352 0H304.334V197.401H510.352V0Z" fill="#E6007E"/>
-        <path d="M203.377 0H0V888.249H203.377V0Z" fill="#E6007E"/>
-        <path d="M509.022 296.661H305.625V888.268H509.022V296.661Z" fill="#E6007E"/>
-        <path d="M1547.11 296.661H1343.74V888.268H1547.11V296.661Z" fill="#E6007E"/>
-        <path d="M1852.78 493.465H2000V296.661H1852.78V0H1649.4V888.249H1852.78V493.465Z" fill="#E6007E"/>
-        <path d="M1152.91 592.166L1270.04 296.661H1050.53L931.276 592.166H1152.91Z" fill="#E6007E"/>
-        <path d="M800.922 296.661H581.409L816.517 888.249H1040.25L800.922 296.661Z" fill="#E6007E"/>
-        <path d="M1548.44 0H1342.41V197.401H1548.44V0Z" fill="#E6007E"/>
-      </svg>
-    </div>
-    <div style="font-size:20px;font-weight:800;color:var(--cream);margin-bottom:4px;letter-spacing:-.3px">Panel de selección</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:28px;font-weight:500">Acceso restringido al equipo de Livit</div>
-    <div style="margin-bottom:14px">
-      <input type="email" id="login-email" placeholder="Email" style="
-        width:100%;padding:10px 12px;
-        background:var(--surface);border:1px solid var(--border2);
-        border-radius:10px;font-family:var(--font);font-size:13px;
-        color:var(--cream);outline:none;margin-bottom:10px;
-      " onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
-      <input type="password" id="login-pass" placeholder="Contraseña" style="
-        width:100%;padding:10px 12px;
-        background:var(--surface);border:1px solid var(--border2);
-        border-radius:10px;font-family:var(--font);font-size:13px;
-        color:var(--cream);outline:none;
-      " onkeydown="if(event.key==='Enter')adminLogin()">
-    </div>
-    <div id="login-error" style="font-size:11px;color:var(--red);margin-bottom:10px;display:none;font-weight:600">Email o contraseña incorrectos.</div>
-    <button onclick="adminLogin()" style="
-      width:100%;padding:11px;
-      background:linear-gradient(135deg,#FF2E9A,#E6007E 62%);color:#fff;
-      border:none;border-radius:10px;font-family:var(--font);
-      font-size:12px;font-weight:800;cursor:pointer;letter-spacing:.3px;
-    ">Entrar</button>
-  </div>
-</div>
-
-<!-- INFORME DISC COMPLETO -->
-<div id="disc-informe-overlay" style="display:none;position:fixed;inset:0;z-index:300;background:var(--bg2);overflow-y:auto">
-  <div style="max-width:720px;margin:0 auto;padding:40px 32px 80px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px">
-      <div>
-        <div style="font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--pink);margin-bottom:6px">Informe DISC</div>
-        <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--cream)" id="di-nombre">—</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:3px" id="di-vacante">—</div>
-      </div>
-      <button onclick="cerrarInformeDisc()" style="padding:8px 16px;background:var(--glass);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer">← Volver</button>
-    </div>
-
-    <!-- Perfil principal -->
-    <div style="background:rgba(230,0,126,.08);border:1px solid rgba(230,0,126,.2);border-radius:var(--radius);padding:24px;margin-bottom:24px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--pink);margin-bottom:8px">Perfil principal</div>
-      <div style="font-size:28px;font-weight:800;letter-spacing:-.8px;color:var(--cream);margin-bottom:6px" id="di-perfil-codigo">—</div>
-      <div style="font-size:13px;color:var(--muted);font-weight:600" id="di-perfil-tipo">—</div>
-    </div>
-
-    <!-- Barras DISC -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:16px">Puntuaciones</div>
-      <div id="di-bars" style="display:flex;flex-direction:column;gap:14px"></div>
-    </div>
-
-    <!-- Descripción del perfil -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px">Forma habitual de trabajar</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.7;font-weight:500" id="di-descripcion">—</div>
-    </div>
-
-    <!-- Aportaciones -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px">Posibles aportaciones al equipo</div>
-      <div id="di-aportaciones" style="display:flex;flex-direction:column;gap:8px"></div>
-    </div>
-
-    <!-- Bajo presión -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px">Comportamiento potencial bajo presión</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.7;font-weight:500" id="di-presion">—</div>
-    </div>
-
-    <!-- Motivadores -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px">Motivadores profesionales probables</div>
-      <div id="di-motivadores" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-    </div>
-
-    <!-- Preguntas para la entrevista -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px">Preguntas sugeridas para la entrevista</div>
-      <div id="di-preguntas" style="display:flex;flex-direction:column;gap:10px"></div>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 const SUPABASE_URL='https://tdotlurmytvcdgmlmecc.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkb3RsdXJteXR2Y2RnbWxtZWNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1MjAyOTMsImV4cCI6MjEwMjA5NjI5M30.GWMQV3Oz0X5oEe_-inidTAg1VBgHbQD6r23ckZXMCc4';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkb3RsdXJteXR2Y2RnbWxtZWNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjM2MzI3MjYsImV4cCI6MjAzOTIwODcyNn0.FNm2NMq3_fHEHnicrYRBF9b0EzR29dExcv3s0wnbN5w';
 const {createClient}=supabase;
-const db=createClient(SUPABASE_URL,SUPABASE_KEY,{global:{headers:{'apikey':SUPABASE_KEY}}});
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
 
-let candidatos=[],vacantes=[],pruebas=[],actual=null,pruebaFileReady=null;
+let candidatos=[],archivados=[],vacantes=[],pruebas=[],categorias=[],actual=null,actualArchivado=null,pruebaFileReady=null;
+
+// Fallback categorías si la tabla aún no existe
+const CATEGORIAS_FALLBACK=[
+  {id:'cat-design',nombre:'Design',prefijo:'DESIGN'},
+  {id:'cat-al',nombre:'AL',prefijo:'AL'},
+  {id:'cat-estr',nombre:'Estructura',prefijo:'ESTR'},
+  {id:'cat-ops',nombre:'Operaciones',prefijo:'OPS'},
+  {id:'cat-mkt',nombre:'Marketing',prefijo:'MKT'},
+];
 
 const labels={
-  // Nuevos estados
-  invited:'Invitado',assessment:'En evaluación',under_review:'En revisión',
-  interview:'Entrevista técnica',offer:'Oferta',hired:'Contratado',rejected:'Descartado',
-  // Estados anteriores (compatibilidad)
-  preseleccionado:'Invitado',perfil_incompleto:'En evaluación',
-  tests_completados:'En revisión',prueba_asignada:'En evaluación',
-  prueba_entregada:'En revisión',entrevista_tecnica:'Entrevista',
-  oferta:'Oferta',contratado:'Contratado',descartado:'Descartado'
+  preseleccionado:'Preseleccionado',perfil_incompleto:'Perfil incompleto',
+  tests_completados:'Tests completados',prueba_asignada:'Prueba asignada',
+  prueba_entregada:'Prueba entregada',entrevista_tecnica:'Entrevista técnica',
+  oferta:'Oferta',descartado:'Descartado'
 };
-
-function cerrarInformeDisc(){
-  document.getElementById('disc-informe-overlay').style.display='none';
-}
-
-const DISC_DATA={
-  D:{
-    nombre:'Dominancia',
-    descripcion:'Orientación directa a resultados y decisiones. Tiende a actuar con rapidez, asumir iniciativa y afrontar directamente los obstáculos.',
-    aportaciones:['Capacidad de decisión rápida','Iniciativa y autonomía','Orientación clara a resultados','Capacidad para afrontar conversaciones difíciles','Rapidez ante situaciones exigentes'],
-    presion:'Puede mostrar impaciencia, tomar decisiones con información insuficiente o centrarse tanto en el resultado que descuide el proceso y las personas.',
-    motivadores:['Autonomía','Retos','Responsabilidad','Resultados medibles','Capacidad de decisión'],
-    preguntas_alta:['Háblame de una decisión importante que tuviste que tomar con información limitada.','¿Cómo te aseguras de escuchar al equipo cuando tienes clara una solución?','Cuéntame una situación en la que tu enfoque directo generó resistencia.'],
-    preguntas_baja:['Cuéntame una situación en la que tuviste que defender firmemente una posición.','¿Cómo actúas cuando una decisión no puede aplazarse?','¿Cómo manejas una conversación difícil?']
-  },
-  I:{
-    nombre:'Influencia',
-    descripcion:'Facilidad para relacionarse, comunicar y motivar a otros. Transmite entusiasmo con naturalidad y genera adhesión alrededor de sus ideas.',
-    aportaciones:['Comunicación y persuasión naturales','Creación de relaciones con facilidad','Energía y entusiasmo contagioso','Capacidad para movilizar al equipo','Facilidad para presentar y vender ideas'],
-    presion:'Puede perder el foco, comprometerse con más de lo que puede asumir o hablar antes de escuchar completamente.',
-    motivadores:['Interacción frecuente','Visibilidad','Colaboración','Espacios para presentar ideas','Reconocimiento interpersonal'],
-    preguntas_alta:['¿Cómo aseguras el seguimiento de los compromisos después de una reunión?','Cuéntame una ocasión en la que tuviste que influir en una persona escéptica.','¿Cómo adaptas tu comunicación a alguien que necesita datos y detalle?'],
-    preguntas_baja:['¿Cómo construyes relaciones con nuevos interlocutores?','Cuéntame una situación en la que tuviste que presentar o defender una propuesta.','¿Cómo consigues apoyo cuando no tienes autoridad directa?']
-  },
-  S:{
-    nombre:'Estabilidad',
-    descripcion:'Paciencia, constancia y disposición para colaborar. Genera confianza por su fiabilidad y su capacidad de escucha activa en el equipo.',
-    aportaciones:['Fiabilidad y continuidad','Escucha activa genuina','Cooperación natural','Capacidad para mantener la calma','Seguimiento constante de las tareas'],
-    presion:'Puede evitar conflictos necesarios, tardar en expresar desacuerdo o mostrar resistencia ante cambios repentinos.',
-    motivadores:['Relaciones de confianza','Expectativas claras','Cambios explicados con anticipación','Ritmos previsibles','Colaboración estable'],
-    preguntas_alta:['Cuéntame cómo reaccionaste ante un cambio inesperado.','¿Cómo expresas desacuerdo cuando quieres preservar una buena relación?','¿Qué haces cuando el equipo necesita modificar rápidamente su forma de trabajar?'],
-    preguntas_baja:['¿Cómo mantienes la constancia en tareas prolongadas?','¿Qué haces para que otras personas puedan seguir tu ritmo?','Cuéntame una ocasión en la que tuviste que aportar estabilidad a un equipo.']
-  },
-  C:{
-    nombre:'Cumplimiento',
-    descripcion:'Análisis riguroso, atención al detalle y orientación a la calidad. Trabaja mejor cuando los criterios y estándares están claramente definidos.',
-    aportaciones:['Capacidad analítica y rigor','Precisión y atención al detalle','Organización y estructura','Control de riesgos','Mejora de procesos y estándares'],
-    presion:'Puede caer en el perfeccionismo, el exceso de análisis o la dificultad para decidir con información incompleta.',
-    motivadores:['Objetivos y estándares claros','Acceso a información suficiente','Tiempo para analizar','Procesos estructurados','Responsabilidades bien delimitadas'],
-    preguntas_alta:['Cuéntame una decisión que tuviste que tomar sin disponer de toda la información.','¿Cómo determinas cuándo un trabajo está suficientemente bien terminado?','¿Cómo reaccionas cuando los procedimientos son ambiguos?'],
-    preguntas_baja:['¿Cómo aseguras la calidad y evitas errores?','¿Qué herramientas utilizas para organizar información compleja?','Cuéntame una situación en la que un detalle cambió el resultado de tu trabajo.']
-  }
-};
-
-const PERFILES_COMBINADOS={
-  DI:'Perfil dinámico, directo y persuasivo. Tiende a movilizar a otras personas y avanzar rápidamente hacia los resultados.',
-  DS:'Perfil resolutivo y estable. Combina orientación a resultados con constancia y preocupación por la continuidad del equipo.',
-  DC:'Perfil exigente, analítico y orientado al control. Busca resultados sólidos y suele cuestionar errores o ineficiencias.',
-  ID:'Perfil comunicativo, emprendedor y orientado a la acción. Genera adhesión y transforma rápidamente las ideas en iniciativas.',
-  IS:'Perfil cercano, participativo y cooperativo. Genera relaciones de confianza y favorece la cohesión del equipo.',
-  IC:'Perfil comunicativo y estructurado. Combina persuasión con preparación, datos y atención a la calidad del mensaje.',
-  SD:'Perfil paciente pero firme cuando el objetivo está claro. Avanza con constancia y asume decisiones cuando son necesarias.',
-  SI:'Perfil colaborativo y sociable. Escucha, facilita la participación y mantiene un ambiente positivo.',
-  SC:'Perfil estable, metódico y fiable. Valora la continuidad, la calidad y el cumplimiento consistente de los procesos.',
-  CD:'Perfil preciso y resolutivo. Analiza antes de actuar, pero puede asumir decisiones firmes cuando dispone de criterios suficientes.',
-  CI:'Perfil analítico con capacidad de comunicación. Prepara cuidadosamente sus argumentos y explica información compleja con claridad.',
-  CS:'Perfil sistemático, paciente y orientado a la calidad. Prefiere trabajar con procesos estables y criterios claramente definidos.',
-};
-
-async function abrirInformeDisc(){
-  if(!actual)return;
-  const{data:discArr2}=await db.from('resultados_disc').select('*').eq('candidato_id',actual.id).order('created_at',{ascending:false}).limit(1);
-  const disc=discArr2?.[0]||null;
-  if(!disc)return;
-
-  const overlay=document.getElementById('disc-informe-overlay');
-  overlay.style.display='block';
-  overlay.scrollTop=0;
-
-  // Header
-  document.getElementById('di-nombre').textContent=actual.nombre;
-  document.getElementById('di-vacante').textContent=actual.vacantes?.titulo||'Sin vacante asignada';
-
-  // Perfil
-  const primary=disc.perfil_principal;
-  const secondary=disc.perfil_secundario;
-  const codigo=disc.informe_html||`${primary}${secondary||''}`;
-  const tipoLabels={perfil_combinado:'Perfil combinado',principal_con_tendencia:'Perfil principal con tendencia',principal_definido:'Perfil claramente definido',equilibrado:'Perfil equilibrado'};
-  document.getElementById('di-perfil-codigo').textContent=`Perfil ${codigo}`;
-  document.getElementById('di-perfil-tipo').textContent=tipoLabels[disc.tipo_perfil]||disc.tipo_perfil||'';
-
-  // Barras
-  const scores={D:disc.puntuacion_d||0,I:disc.puntuacion_i||0,S:disc.puntuacion_s||0,C:disc.puntuacion_c||0};
-  const bandas=[{max:39,label:'Menos característico'},{max:59,label:'Situacional'},{max:74,label:'Característico'},{max:100,label:'Muy característico'}];
-  const getBanda=v=>bandas.find(b=>v<=b.max)?.label||'';
-  document.getElementById('di-bars').innerHTML=['D','I','S','C'].map(d=>{
-    const v=scores[d];
-    const color=d===primary?'var(--pink)':d===secondary?'rgba(230,0,126,.5)':'rgba(255,255,255,.15)';
-    return `<div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div>
-          <span style="font-size:12px;font-weight:800;color:var(--cream)">${d} — ${DISC_DATA[d].nombre}</span>
-          <span style="font-size:10px;color:var(--muted);margin-left:8px">${getBanda(v)}</span>
-        </div>
-        <span style="font-size:14px;font-weight:800;color:var(--cream)">${v}</span>
-      </div>
-      <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-        <div style="width:${v}%;height:100%;background:${color};border-radius:3px;transition:width .6s"></div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Descripción del perfil combinado
-  const claveCombo=`${primary}${secondary||''}`;
-  document.getElementById('di-descripcion').textContent=
-    PERFILES_COMBINADOS[claveCombo]||DISC_DATA[primary]?.descripcion||'—';
-
-  // Aportaciones (combinar primary + secondary)
-  const aports=[...DISC_DATA[primary]?.aportaciones||[],...(secondary&&secondary!==primary?DISC_DATA[secondary]?.aportaciones.slice(0,2)||[]:[])]
-    .slice(0,6);
-  document.getElementById('di-aportaciones').innerHTML=aports.map(a=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span style="width:6px;height:6px;border-radius:50%;background:var(--pink);flex-shrink:0"></span>
-      <span style="font-size:13px;color:var(--muted);font-weight:500">${a}</span>
-    </div>`).join('');
-
-  // Bajo presión
-  document.getElementById('di-presion').textContent=DISC_DATA[primary]?.presion||'—';
-
-  // Motivadores
-  const motivs=[...DISC_DATA[primary]?.motivadores||[],...(secondary&&secondary!==primary?DISC_DATA[secondary]?.motivadores.slice(0,2)||[]:[])]
-    .slice(0,6);
-  document.getElementById('di-motivadores').innerHTML=motivs.map(m=>`
-    <span style="padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:20px;font-size:11px;font-weight:700;color:var(--muted)">${m}</span>`).join('');
-
-  // Preguntas para entrevista
-  const puntuaciones=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
-  const alta=puntuaciones[0][0];
-  const baja=puntuaciones[puntuaciones.length-1][0];
-  const pregsAlta=DISC_DATA[alta]?.preguntas_alta||[];
-  const pregsBaja=DISC_DATA[baja]?.preguntas_baja||[];
-  const todasPregs=[
-    ...pregsAlta.map(p=>({dim:alta,tipo:'alta',texto:p})),
-    ...pregsBaja.map(p=>({dim:baja,tipo:'baja',texto:p}))
-  ];
-  document.getElementById('di-preguntas').innerHTML=todasPregs.map(p=>`
-    <div style="padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px">
-      <div style="font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:${p.tipo==='alta'?'var(--pink)':'var(--blue)'};margin-bottom:5px">${p.dim} ${p.tipo==='alta'?'alta':'baja'}</div>
-      <div style="font-size:13px;color:var(--muted);font-weight:500;line-height:1.5">${p.texto}</div>
-    </div>`).join('');
-}
-
-async function loadArchivo(){
-  const{data}=await db.from('candidatos').select('*,vacantes(titulo),resultados_disc(perfil_principal,perfil_secundario)').in('estado',['rejected','descartado']).order('updated_at',{ascending:false});
-  const lista=data||[];
-  document.getElementById('badge-archivo').textContent=lista.length;
-  const tbody=document.getElementById('tabla-archivo');
-  if(!lista.length){
-    tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📚</div><div style="font-weight:800;color:var(--muted)">Sin candidatos archivados</div><p>Los candidatos descartados aparecerán aquí</p></div></td></tr>';
-    return;
-  }
-  tbody.innerHTML=lista.map(c=>{
-    const disc=c.resultados_disc?.[0];
-    const perfil=disc?`${disc.perfil_principal||''}${disc.perfil_secundario?'('+disc.perfil_secundario+')':''}`:'—';
-    return `<tr onclick="abrirCandidato('${c.id}')">
-      <td><div class="td-name">${c.nombre}</div><div class="td-email">${c.email}</div></td>
-      <td>${c.vacantes?`<span class="vac-tag">${c.vacantes.titulo}</span>`:'<span style="color:var(--muted2);font-size:11px">—</span>'}</td>
-      <td><span style="font-size:11px;font-weight:700;color:var(--muted)">${perfil}</span></td>
-      <td class="td-date">${fmt(c.updated_at)}</td>
-      <td><button onclick="event.stopPropagation();restaurarCandidato('${c.id}')" style="font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer">Restaurar</button></td>
-    </tr>`;
-  }).join('');
-}
-
-async function loadContratados(){
-  const{data}=await db.from('candidatos').select('*,vacantes(titulo),resultados_disc(perfil_principal,perfil_secundario)').in('estado',['hired','contratado']).order('updated_at',{ascending:false});
-  const lista=data||[];
-  document.getElementById('badge-contratados').textContent=lista.length;
-  const tbody=document.getElementById('tabla-contratados');
-  if(!lista.length){
-    tbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🎉</div><div style="font-weight:800;color:var(--muted)">Sin contratados aún</div><p>Los candidatos contratados aparecerán aquí</p></div></td></tr>';
-    return;
-  }
-  tbody.innerHTML=lista.map(c=>{
-    const disc=c.resultados_disc?.[0];
-    const perfil=disc?`${disc.perfil_principal||''}${disc.perfil_secundario?'('+disc.perfil_secundario+')':''}`:'—';
-    return `<tr onclick="abrirCandidato('${c.id}')">
-      <td><div class="td-name">${c.nombre}</div><div class="td-email">${c.email}</div></td>
-      <td>${c.vacantes?`<span class="vac-tag">${c.vacantes.titulo}</span>`:'<span style="color:var(--muted2);font-size:11px">—</span>'}</td>
-      <td><span style="font-size:11px;font-weight:700;color:var(--pink)">${perfil}</span></td>
-      <td class="td-date">${fmt(c.updated_at)}</td>
-    </tr>`;
-  }).join('');
-}
-
-async function restaurarCandidato(id){
-  await db.from('candidatos').update({estado:'preseleccionado',updated_at:new Date().toISOString()}).eq('id',id);
-  toast_msg('Candidato restaurado al proceso');
-  loadBiblioteca();
-  await loadCandidatos();
-}
-
-async function borrarCandidato(){
-  if(!actual)return;
-  if(!confirm(`¿Eliminar permanentemente a ${actual.nombre}? Esta acción no se puede deshacer.`))return;
-  await db.from('entregas_archivos').delete().eq('candidato_id',actual.id);
-  await db.from('historial_estados').delete().eq('candidato_id',actual.id);
-  await db.from('resultados_disc').delete().eq('candidato_id',actual.id);
-  await db.from('pruebas_tecnicas').delete().eq('candidato_id',actual.id);
-  await db.from('respuestas_personalidad').delete().eq('candidato_id',actual.id);
-  await db.from('candidatos').delete().eq('id',actual.id);
-  toast_msg('Candidato eliminado');
-  closeModal('modal-cand');
-  await loadCandidatos();
-}
 
 async function init(){
-  // Comprobar si hay sesión activa
-  const {data:{session}}=await db.auth.getSession();
-  if(!session){
-    // Mostrar login
-    document.getElementById('login-overlay').style.display='flex';
-    document.querySelector('.app').style.display='none';
-    document.querySelector('header').style.display='none';
-    return;
-  }
-  await Promise.all([loadCandidatos(),loadVacantes(),loadPruebas()]);
-}
-
-async function adminLogin(){
-  const email=document.getElementById('login-email').value.trim();
-  const pass=document.getElementById('login-pass').value;
-  document.getElementById('login-error').style.display='none';
-  const {error}=await db.auth.signInWithPassword({email,password:pass});
-  if(error){
-    document.getElementById('login-error').style.display='block';
-    return;
-  }
-  document.getElementById('login-overlay').style.display='none';
-  document.querySelector('.app').style.display='flex';
-  document.querySelector('header').style.display='flex';
-  await Promise.all([loadCandidatos(),loadVacantes(),loadPruebas()]);
-}
-
-async function adminLogout(){
-  await db.auth.signOut();
-  location.reload();
+  await Promise.all([loadCandidatos(),loadVacantes(),loadPruebas(),loadCategorias()]);
 }
 
 async function loadCandidatos(){
   const {data}=await db.from('candidatos').select('*,vacantes(titulo)').order('created_at',{ascending:false});
-  candidatos=data||[];
-  const activos=candidatos.filter(c=>!['rejected','hired','descartado','contratado'].includes(c.estado));
-  renderCandidatos(activos);
-  updateStats(activos);
-  document.getElementById('badge-candidatos').textContent=activos.length;
-  document.getElementById('badge-archivo').textContent=candidatos.filter(c=>['rejected','descartado'].includes(c.estado)).length;
-  document.getElementById('badge-contratados').textContent=candidatos.filter(c=>['hired','contratado'].includes(c.estado)).length;
+  const all=data||[];
+  candidatos=all.filter(c=>c.estado!=='descartado');
+  archivados=all.filter(c=>c.estado==='descartado');
+  renderCandidatos(candidatos);
+  renderArchivo(archivados);
+  updateStats(candidatos);
+  document.getElementById('badge-candidatos').textContent=candidatos.length;
+  document.getElementById('badge-archivo').textContent=archivados.length;
 }
 
 async function loadVacantes(){
@@ -1157,17 +898,101 @@ async function loadVacantes(){
   poblarSelectVacantes();
 }
 
+async function loadCategorias(){
+  try {
+    const {data,error}=await db.from('categorias_vacantes').select('*').order('nombre');
+    if(error||!data||data.length===0){
+      categorias=CATEGORIAS_FALLBACK;
+    } else {
+      categorias=data;
+    }
+  } catch(e){
+    categorias=CATEGORIAS_FALLBACK;
+  }
+  renderCategorias();
+  poblarSelectCategorias();
+}
+
+function renderCategorias(){
+  const el=document.getElementById('lista-categorias');
+  if(!el)return;
+  if(!categorias.length){
+    el.innerHTML='<div style="color:var(--muted2);font-size:12px;padding:12px 0">Sin categorías. Añade la primera.</div>';
+    return;
+  }
+  el.innerHTML=categorias.map(c=>`
+    <div class="categoria-row">
+      <div class="categoria-info">
+        <span class="categoria-prefijo">${c.prefijo}</span>
+        <span class="categoria-nombre">${c.nombre}</span>
+      </div>
+      <button class="categoria-del" onclick="eliminarCategoria('${c.id}','${c.nombre}')">Eliminar</button>
+    </div>`).join('');
+}
+
+function poblarSelectCategorias(){
+  // Select en modal nueva vacante
+  const sel=document.getElementById('v-categoria');
+  if(!sel)return;
+  while(sel.options.length>1)sel.remove(1);
+  categorias.forEach(c=>{sel.appendChild(new Option(c.nombre,c.id))});
+  // Filter en vista vacantes
+  const fsel=document.getElementById('filter-cat-vacante');
+  if(fsel){
+    while(fsel.options.length>1)fsel.remove(1);
+    categorias.forEach(c=>{fsel.appendChild(new Option(c.nombre,c.id))});
+  }
+}
+
+async function crearCategoria(){
+  const nombre=document.getElementById('nueva-cat-nombre').value.trim();
+  const prefijo=document.getElementById('nueva-cat-prefijo').value.trim().toUpperCase();
+  if(!nombre||!prefijo){toast_msg('Nombre y prefijo son obligatorios');return}
+  // Si usamos fallback (tabla no existe), mostrar aviso
+  if(categorias===CATEGORIAS_FALLBACK||categorias[0]?.id?.startsWith('cat-')){
+    toast_msg('La tabla de categorías aún no existe en la base de datos');return;
+  }
+  const {error}=await db.from('categorias_vacantes').insert({nombre,prefijo});
+  if(error){toast_msg(error.message.includes('unique')?'Ese nombre o prefijo ya existe':'Error al crear categoría');return}
+  toast_msg('Categoría creada');
+  document.getElementById('nueva-cat-nombre').value='';
+  document.getElementById('nueva-cat-prefijo').value='';
+  await loadCategorias();
+}
+
+async function eliminarCategoria(id,nombre){
+  if(categorias===CATEGORIAS_FALLBACK||id.startsWith('cat-')){toast_msg('No se puede modificar con la configuración actual');return}
+  // Verificar que no tiene vacantes
+  const {data}=await db.from('vacantes').select('id').eq('categoria_id',id).limit(1);
+  if(data&&data.length>0){toast_msg(`No se puede eliminar "${nombre}" — tiene vacantes asignadas`);return}
+  if(!confirm(`¿Eliminar la categoría "${nombre}"?`))return;
+  await db.from('categorias_vacantes').delete().eq('id',id);
+  toast_msg('Categoría eliminada');
+  await loadCategorias();
+}
+
+async function actualizarCodigoPreview(){
+  const catId=document.getElementById('v-categoria').value;
+  const prev=document.getElementById('codigo-preview');
+  if(!catId){prev.textContent='';return}
+  const cat=categorias.find(c=>c.id===catId);
+  if(!cat){prev.textContent='';return}
+  // Contar vacantes existentes de esta categoría
+  const {data}=await db.from('vacantes').select('id').eq('categoria_id',catId);
+  const n=((data?.length||0)+1).toString().padStart(3,'0');
+  prev.textContent=`Código asignado: ${cat.prefijo}-${n}`;
+}
+
 function updateStats(list){
-  const activos=list.filter(c=>c.estado!=='descartado');
   const tests=list.filter(c=>['tests_completados','prueba_asignada','prueba_entregada','entrevista_tecnica','oferta'].includes(c.estado));
-  const pruebas=list.filter(c=>c.estado==='prueba_entregada');
+  const pent=list.filter(c=>c.estado==='prueba_entregada');
   const ofertas=list.filter(c=>c.estado==='oferta');
-  document.getElementById('stat-total').textContent=activos.length;
+  document.getElementById('stat-total').textContent=list.length;
   document.getElementById('stat-tests').textContent=tests.length;
-  document.getElementById('stat-pruebas').textContent=pruebas.length;
+  document.getElementById('stat-pruebas-stat').textContent=pent.length;
   document.getElementById('stat-ofertas').textContent=ofertas.length;
-  document.getElementById('live-count').textContent=`${activos.length} candidato${activos.length!==1?'s':''} activo${activos.length!==1?'s':''}`;
-  document.getElementById('subtitle-count').textContent=`${list.length} candidato${list.length!==1?'s':''} en total`;
+  document.getElementById('live-count').textContent=`${list.length} candidato${list.length!==1?'s':''} activo${list.length!==1?'s':''}`;
+  document.getElementById('subtitle-count').textContent=`${list.length} candidato${list.length!==1?'s':''} activo${list.length!==1?'s':''}`;
 }
 
 function renderCandidatos(list){
@@ -1186,41 +1011,72 @@ function renderCandidatos(list){
     </tr>`).join('');
 }
 
+function renderArchivo(list){
+  const tbody=document.getElementById('tabla-archivo');
+  if(!list.length){
+    tbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🗃️</div><div style="font-weight:800;color:var(--muted)">Archivo vacío</div><p>Los candidatos descartados aparecen aquí</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=list.map(c=>`
+    <tr>
+      <td><div class="td-name">${c.nombre}</div><div class="td-email">${c.email}</div></td>
+      <td>${c.vacantes?`<span class="vac-tag">${c.vacantes.titulo}</span>`:'<span style="color:var(--muted2);font-size:11px">—</span>'}</td>
+      <td class="td-date">${fmt(c.updated_at||c.created_at)}</td>
+      <td><button class="btn btn-ghost" style="font-size:10px;padding:5px 10px" onclick="abrirArchivado('${c.id}')">↩ Recuperar</button></td>
+    </tr>`).join('');
+}
+
 function renderVacantes(list){
   const tbody=document.getElementById('tabla-vacantes');
   if(!list.length){
-    tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><div style="font-weight:800;color:var(--muted)">Sin vacantes</div><p>Crea la primera con el botón de arriba</p></div></td></tr>';
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div><div style="font-weight:800;color:var(--muted)">Sin vacantes</div><p>Crea la primera con el botón de arriba</p></div></td></tr>';
     return;
   }
   tbody.innerHTML=list.map(v=>{
-    const vcands=candidatos.filter(c=>c.vacante_id===v.id&&c.estado!=='descartado');
-    const contratado=candidatos.find(c=>c.vacante_id===v.id&&c.estado==='contratado');
-    const enProceso=candidatos.filter(c=>c.vacante_id===v.id&&!['descartado','contratado'].includes(c.estado)).length;
+    const n=[...candidatos,...archivados].filter(c=>c.vacante_id===v.id).length;
+    const cat=categorias.find(c=>c.id===v.categoria_id);
     return `<tr>
-      <td>
-        <div class="td-name">${v.titulo}</div>
-        ${v.descripcion?`<div class="td-email" style="margin-top:2px">${v.descripcion.substring(0,60)}${v.descripcion.length>60?'...':''}</div>`:''}
-      </td>
-      <td>${v.equipo||'<span style="color:var(--muted2)">—</span>'}</td>
+      <td><div class="td-name">${v.titulo}</div></td>
+      <td><span class="vac-tag">${v.codigo_vacante||'—'}</span></td>
+      <td>${cat?`<span class="categoria-prefijo">${cat.prefijo}</span> <span style="font-size:11px;color:var(--muted)">${cat.nombre}</span>`:'<span style="color:var(--muted2);font-size:11px">—</span>'}</td>
       <td><span class="badge" style="background:${v.estado==='abierta'?'rgba(74,200,130,.1)':'rgba(255,255,255,.05)'};color:${v.estado==='abierta'?'var(--green)':'var(--muted)'};border:1px solid ${v.estado==='abierta'?'rgba(74,200,130,.25)':'var(--border)'}">
         <span class="badge-dot" style="background:${v.estado==='abierta'?'var(--green)':'var(--muted)'}"></span>${v.estado}
       </span></td>
-      <td style="font-size:12px">
-        ${contratado?`<span style="color:var(--green);font-weight:700">✓ ${contratado.nombre}</span>`:`<span style="color:var(--muted);font-weight:600">${enProceso} en proceso</span>`}
-      </td>
+      <td style="color:var(--muted);font-weight:600;font-size:12px">${n} candidato${n!==1?'s':''}</td>
       <td class="td-date">${fmt(v.created_at)}</td>
     </tr>`;
   }).join('');
 }
 
+function filtrarVacantes(){
+  const q=(document.getElementById('search-vacantes').value||'').toLowerCase();
+  const cat=document.getElementById('filter-cat-vacante').value;
+  const est=document.getElementById('filter-estado-vacante').value;
+  renderVacantes(vacantes.filter(v=>{
+    const mq=!q||v.titulo.toLowerCase().includes(q)||(v.codigo_vacante||'').toLowerCase().includes(q);
+    const mc=!cat||v.categoria_id===cat;
+    const me=!est||v.estado===est;
+    return mq&&mc&&me;
+  }));
+}
+
 function poblarSelectVacantes(){
-  ['filter-vacante','n-vacante'].forEach(id=>{
+  ['filter-vacante','n-vacante','ma-vacante-recuperar'].forEach(id=>{
     const sel=document.getElementById(id);
+    if(!sel)return;
     const current=sel.value;
     while(sel.options.length>1)sel.remove(1);
     vacantes.forEach(v=>{const o=new Option(v.titulo,v.id);sel.appendChild(o)});
     sel.value=current;
   });
+  // También poblar el select de vacante en modal candidato
+  const msel=document.getElementById('m-vacante-select');
+  if(msel){
+    const cur=msel.value;
+    while(msel.options.length>1)msel.remove(1);
+    vacantes.forEach(v=>msel.appendChild(new Option(v.titulo,v.id)));
+    msel.value=cur;
+  }
 }
 
 async function loadPruebas(){
@@ -1229,7 +1085,6 @@ async function loadPruebas(){
   renderPruebas(pruebas);
   document.getElementById('badge-pruebas').textContent=pruebas.length;
   poblarSelectPruebas();
-  // También poblar select de vacante en modal prueba
   const sel=document.getElementById('p-vacante');
   while(sel.options.length>1)sel.remove(1);
   vacantes.forEach(v=>{sel.appendChild(new Option(v.titulo,v.id))});
@@ -1241,32 +1096,21 @@ function renderPruebas(list){
     tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><div style="font-weight:800;color:var(--muted)">Sin pruebas</div><p>Crea la primera con el botón de arriba</p></div></td></tr>';
     return;
   }
-  tbody.innerHTML=list.map(p=>{
-    const n=candidatos.filter(c=>c.vacante_id&&pruebas.find(pr=>pr.id===p.id)).length||0;
-    return `<tr>
+  tbody.innerHTML=list.map(p=>`
+    <tr>
       <td><div class="td-name">${p.titulo}</div>${p.descripcion?`<div class="td-email">${p.descripcion.substring(0,60)}${p.descripcion.length>60?'...':''}</div>`:''}</td>
       <td>${p.vacantes?`<span class="vac-tag">${p.vacantes.titulo}</span>`:'<span style="color:var(--muted2);font-size:11px">Cualquier vacante</span>'}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          ${p.archivo_url?`<button onclick="verPruebaBiblioteca('${p.archivo_url}')" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--pink)">📄 ${p.archivo_nombre||'Ver'}</button>`:'<span style="color:var(--red);font-size:11px">Sin archivo</span>'}
-          <label style="font-size:10px;font-weight:700;color:var(--blue);cursor:pointer;padding:2px 8px;border:1px solid rgba(90,170,232,.3);border-radius:4px;white-space:nowrap">
-            Cambiar<input type="file" accept=".pdf" style="display:none" onchange="cambiarArchivoPrueba('${p.id}',this.files[0])">
-          </label>
-          <button onclick="event.stopPropagation();eliminarPruebaBiblioteca('${p.id}','${p.archivo_url||''}')" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:16px;line-height:1;opacity:.7;padding:0 2px" title="Eliminar">✕</button>
-        </div>
-      </td>
+      <td>${p.archivo_url?`<a class="field-link" href="${p.archivo_url}" target="_blank">📄 ${p.archivo_nombre||'Ver PDF'}</a>`:'<span style="color:var(--red);font-size:11px">Sin archivo</span>'}</td>
+      <td style="color:var(--muted);font-size:12px;font-weight:600">${[...candidatos,...archivados].filter(c=>c.prueba_id===p.id).length} asignaciones</td>
       <td class="td-date">${fmt(p.created_at)}</td>
-    </tr>`;
-  }).join('');
+    </tr>`).join('');
 }
 
 function poblarSelectPruebas(){
-  ['m-prueba-select','n-prueba'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel)return;
-    while(sel.options.length>1)sel.remove(1);
-    pruebas.forEach(p=>sel.appendChild(new Option(p.titulo,p.id)));
-  });
+  const sel=document.getElementById('m-prueba-select');
+  if(!sel)return;
+  while(sel.options.length>1)sel.remove(1);
+  pruebas.forEach(p=>sel.appendChild(new Option(p.titulo,p.id)));
 }
 
 function pDrop(e){
@@ -1339,7 +1183,6 @@ async function asignarPrueba(){
   const prueba=pruebas.find(p=>p.id===pruebaId);
   if(!prueba)return;
 
-  // Crear registro en pruebas_tecnicas
   const{error}=await db.from('pruebas_tecnicas').upsert({
     candidato_id:actual.id,
     enunciado_url:prueba.archivo_url,
@@ -1350,7 +1193,6 @@ async function asignarPrueba(){
 
   if(error){toast_msg('Error al asignar la prueba');return}
 
-  // Cambiar estado a prueba_asignada
   await db.from('candidatos').update({estado:'prueba_asignada',updated_at:new Date().toISOString()}).eq('id',actual.id);
   await db.from('historial_estados').insert({candidato_id:actual.id,estado_anterior:actual.estado,estado_nuevo:'prueba_asignada',cambiado_por:'Lucía'});
   actual.estado='prueba_asignada';
@@ -1370,86 +1212,18 @@ async function desasignarPrueba(){
   await loadCandidatos();
 }
 
-async function reemplazarEnunciado(file){
-  if(!actual||!file||file.type!=='application/pdf')return;
-  const path=`${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
-  const{error}=await db.storage.from('pruebas').upload(path,file);
-  if(error){toast_msg('Error al subir el archivo');return;}
-  const{data:urlData}=db.storage.from('pruebas').getPublicUrl(path);
-  const enunciado_url=urlData?.publicUrl||path;
-  await db.from('pruebas_tecnicas').update({enunciado_url,instrucciones:null}).eq('candidato_id',actual.id);
-  toast_msg('Enunciado actualizado');
-  await abrirCandidato(actual.id);
-}
-
-async function eliminarPruebaBiblioteca(id, url){
-  if(!confirm('¿Eliminar esta prueba de la biblioteca? Se eliminará también de los candidatos que la tengan asignada.'))return;
-  // Borrar archivo de Storage
-  if(url&&url.includes('/object/public/pruebas/')){
-    const path=decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]);
-    await db.storage.from('pruebas').remove([path]);
-  }
-  // Desasignar de candidatos que la tengan
-  await db.from('pruebas_tecnicas').update({biblioteca_prueba_id:null}).eq('biblioteca_prueba_id',id);
-  // Borrar de biblioteca
-  const{error}=await db.from('biblioteca_pruebas').delete().eq('id',id);
-  if(error){toast_msg('Error al eliminar: '+error.message);return;}
-  toast_msg('Prueba eliminada');
-  await loadPruebas();
-}
-
-async function cambiarArchivoPrueba(id, file){
-  if(!file||file.type!=='application/pdf'){toast_msg('Solo se aceptan archivos PDF');return;}
-  toast_msg('Subiendo...');
-  const path=`${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
-  const{error}=await db.storage.from('pruebas').upload(path,file);
-  if(error){toast_msg('Error al subir el archivo');return;}
-  const{data:urlData}=db.storage.from('pruebas').getPublicUrl(path);
-  await db.from('biblioteca_pruebas').update({
-    archivo_url:urlData?.publicUrl,
-    archivo_nombre:file.name
-  }).eq('id',id);
-  toast_msg('Archivo actualizado');
-  await loadPruebas();
-}
-
-async function verPruebaBiblioteca(url){
-  let path=null;
-  if(url.includes('/object/public/pruebas/'))path=decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]);
-  else if(url.includes('/object/pruebas/'))path=decodeURIComponent(url.split('/object/pruebas/')[1].split('?')[0]);
-  if(path){
-    const{data,error}=await db.storage.from('pruebas').createSignedUrl(path,3600);
-    if(data?.signedUrl){window.open(data.signedUrl,'_blank');return;}
-    console.error('Error generando URL firmada:',error);
-  }
-  window.open(url,'_blank');
-}
-
 async function descargarPrueba(){
   if(!actual)return;
   const{data:pt}=await db.from('pruebas_tecnicas').select('enunciado_url').eq('candidato_id',actual.id).maybeSingle();
-  if(!pt?.enunciado_url)return;
-  const url=pt.enunciado_url;
-  // Extraer path del bucket pruebas
-  let path=null;
-  if(url.includes('/object/public/pruebas/'))path=decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]);
-  else if(url.includes('/object/sign/pruebas/'))path=decodeURIComponent(url.split('/object/sign/pruebas/')[1].split('?')[0]);
-  else if(url.includes('/object/pruebas/'))path=decodeURIComponent(url.split('/object/pruebas/')[1].split('?')[0]);
-  if(path){
-    const{data,error}=await db.storage.from('pruebas').createSignedUrl(path,3600);
-    if(data?.signedUrl){window.open(data.signedUrl,'_blank');return;}
-    console.error('Signed URL error:',error);
-  }
-  window.open(url,'_blank');
+  if(pt?.enunciado_url)window.open(pt.enunciado_url,'_blank');
 }
 
 function filtrar(){
-  const q=document.getElementById('search-input').value.toLowerCase();
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
   const est=document.getElementById('filter-estado').value;
   const vac=document.getElementById('filter-vacante').value;
   renderCandidatos(candidatos.filter(c=>{
-    if(['rejected','hired','descartado','contratado'].includes(c.estado))return false;
-    const mq=!q||c.nombre.toLowerCase().includes(q)||c.email.toLowerCase().includes(q);
+    const mq=!q||c.nombre.toLowerCase().includes(q)||c.email.toLowerCase().includes(q)||(c.telefono||'').toLowerCase().includes(q);
     const me=!est||c.estado===est;
     const mv=!vac||c.vacante_id===vac;
     return mq&&me&&mv;
@@ -1462,24 +1236,22 @@ async function abrirCandidato(id){
   const c=actual;
   document.getElementById('m-nombre').textContent=c.nombre;
   document.getElementById('m-vacante-label').textContent=c.vacantes?.titulo||vacantes.find(v=>v.id===c.vacante_id)?.titulo||'Sin vacante asignada';
-  // Poblar y setear select de vacante si existe
-  const vacSel=document.getElementById('m-vacante-select');
-  if(vacSel){
-    while(vacSel.options.length>1)vacSel.remove(1);
-    vacantes.forEach(v=>vacSel.appendChild(new Option(v.titulo,v.id)));
-    vacSel.value=c.vacante_id||'';
-  }
   document.getElementById('m-email').textContent=c.email;
   document.getElementById('m-tel').textContent=c.telefono||'—';
+  document.getElementById('m-presentacion').textContent=c.presentacion||'—';
+  document.getElementById('m-linkedin').innerHTML=c.linkedin?`<a class="field-link" href="${c.linkedin}" target="_blank">↗ Ver perfil</a>`:'<span style="color:var(--muted2);font-size:12px">—</span>';
   document.getElementById('m-estado').value=c.estado;
   document.getElementById('m-notas').value=c.notas_internas||'';
+
+  // Vacante select
+  poblarSelectVacantes();
+  document.getElementById('m-vacante-select').value=c.vacante_id||'';
 
   // CV
   renderCV(c);
 
   // DISC
-  const{data:discArr}=await db.from('resultados_disc').select('*').eq('candidato_id',id).order('created_at',{ascending:false}).limit(1);
-  const disc=discArr?.[0]||null;
+  const{data:disc}=await db.from('resultados_disc').select('*').eq('candidato_id',id).maybeSingle();
   if(disc){
     document.getElementById('m-disc-perfil').innerHTML=`<svg width="10" height="10" viewBox="0 0 24 24" fill="var(--pink)"><circle cx="12" cy="12" r="10"/></svg> Perfil ${disc.perfil_principal||''}${disc.perfil_secundario?'('+disc.perfil_secundario+')':''} — ${disc.tipo_perfil||''}`;
     document.getElementById('m-disc-bars').innerHTML=['D','I','S','C'].map(d=>`
@@ -1488,60 +1260,30 @@ async function abrirCandidato(id){
         <div class="disc-bar-bg"><div class="disc-bar-fill" style="width:${disc['puntuacion_'+d.toLowerCase()]||0}%"></div></div>
         <span class="disc-score">${disc['puntuacion_'+d.toLowerCase()]||0}</span>
       </div>`).join('');
-    document.getElementById('m-disc-btn-informe').style.display='block';
   } else {
     document.getElementById('m-disc-perfil').innerHTML='<span style="opacity:.4;font-size:12px;font-weight:600">Sin completar</span>';
     document.getElementById('m-disc-bars').innerHTML='';
-    document.getElementById('m-disc-btn-informe').style.display='none';
   }
 
   // Prueba
   const{data:prueba}=await db.from('pruebas_tecnicas').select('*,biblioteca_pruebas(titulo)').eq('candidato_id',id).maybeSingle();
   const elAsignada=document.getElementById('m-prueba-asignada');
+  const elSelector=document.getElementById('m-prueba-selector');
   const elVacia=document.getElementById('m-prueba-vacia');
   const elEntrega=document.getElementById('m-entrega-candidato');
-  poblarSelectPruebas();
   if(prueba){
-    elAsignada.style.display='block';elVacia.style.display='none';
+    elAsignada.style.display='block';elSelector.style.display='none';elVacia.style.display='none';
     document.getElementById('m-prueba-nombre').textContent=prueba.biblioteca_pruebas?.titulo||'Prueba asignada';
-    document.getElementById('m-prueba-select').value=prueba.biblioteca_prueba_id||'';
-    // Cargar archivos de entregas
-    const{data:entregas}=await db.from('entregas_archivos').select('*').eq('candidato_id',id).order('created_at',{ascending:false});
-    if(entregas&&entregas.length>0){
+    if(prueba.entrega_url){
       elEntrega.style.display='block';
-      const lista=document.getElementById('m-entrega-lista');
-      lista.innerHTML='<div style="font-size:11px;color:var(--muted2);padding:6px 0">Generando enlaces...</div>';
-      const items=await Promise.all(entregas.map(async a=>{
-        const{data:signed}=await db.storage.from('entregas').createSignedUrl(a.storage_path,3600);
-        const url=signed?.signedUrl||'#';
-        const icon=a.nombre_archivo.match(/\.(mp4|mov|avi|webm)$/i)?'🎬':a.nombre_archivo.match(/\.(jpg|jpeg|png|gif)$/i)?'🖼':'📄';
-        return `<div class="prueba-action" style="margin-bottom:4px">
-          <span class="prueba-action-label">${icon} ${a.nombre_archivo}</span>
-          <a class="field-link" href="${url}" target="_blank">Descargar</a>
-        </div>`;
-      }));
-      lista.innerHTML=items.join('');
-    } else if(prueba.entrega_url){
-      // Fallback para entregas antiguas
-      elEntrega.style.display='block';
-      const url=prueba.entrega_url;
-      let signedUrl=url;
-      if(url.includes('/object/public/pruebas/')){
-        const path=decodeURIComponent(url.split('/object/public/pruebas/')[1].split('?')[0]);
-        const{data:signed}=await db.storage.from('pruebas').createSignedUrl(path,3600);
-        if(signed?.signedUrl)signedUrl=signed.signedUrl;
-      } else if(url.includes('/object/entregas/')){
-        const path=decodeURIComponent(url.split('/object/entregas/')[1].split('?')[0]);
-        const{data:signed}=await db.storage.from('entregas').createSignedUrl(path,3600);
-        if(signed?.signedUrl)signedUrl=signed.signedUrl;
-      }
-      document.getElementById('m-entrega-lista').innerHTML=`<div class="prueba-action"><span class="prueba-action-label">📤 Entrega</span><a class="field-link" href="${signedUrl}" target="_blank">Descargar</a></div>`;
+      document.getElementById('m-entrega-link').href=prueba.entrega_url;
     } else {
       elEntrega.style.display='none';
     }
   } else {
-    elAsignada.style.display='none';
-    document.getElementById('m-prueba-select').value='';
+    elAsignada.style.display='none';elVacia.style.display='none';
+    elSelector.style.display='block';
+    poblarSelectPruebas();
   }
 
   // Historial
@@ -1555,13 +1297,47 @@ async function abrirCandidato(id){
   document.getElementById('modal-cand').classList.add('open');
 }
 
+function abrirArchivado(id){
+  actualArchivado=archivados.find(c=>c.id===id);
+  if(!actualArchivado)return;
+  const c=actualArchivado;
+  document.getElementById('ma-nombre').textContent=c.nombre;
+  document.getElementById('ma-email').textContent=c.email;
+  document.getElementById('ma-tel').textContent=c.telefono||'—';
+  document.getElementById('ma-notas').textContent=c.notas_internas||'Sin notas';
+  poblarSelectVacantes();
+  document.getElementById('ma-vacante-recuperar').value=c.vacante_id||'';
+  document.getElementById('modal-archivado').classList.add('open');
+}
+
+async function recuperarCandidato(){
+  if(!actualArchivado)return;
+  const vacId=document.getElementById('ma-vacante-recuperar').value||null;
+  const {error}=await db.from('candidatos').update({
+    estado:'preseleccionado',
+    vacante_id:vacId,
+    updated_at:new Date().toISOString()
+  }).eq('id',actualArchivado.id);
+  if(error){toast_msg('Error al recuperar el candidato');return}
+  await db.from('historial_estados').insert({
+    candidato_id:actualArchivado.id,
+    estado_anterior:'descartado',
+    estado_nuevo:'preseleccionado',
+    cambiado_por:'Lucía'
+  });
+  toast_msg('Candidato recuperado y reactivado');
+  closeModal('modal-archivado');
+  actualArchivado=null;
+  await loadCandidatos();
+  showView('candidatos');
+}
+
 function renderCV(c){
   const exists=document.getElementById('m-cv-exists');
   const upload=document.getElementById('m-cv-upload');
   if(c.cv_url){
     exists.style.display='flex';
     upload.style.display='none';
-    // Extraer nombre del archivo de la URL
     const partes=c.cv_url.split('/');
     document.getElementById('m-cv-nombre').textContent=decodeURIComponent(partes[partes.length-1].split('?')[0]);
   } else {
@@ -1606,24 +1382,12 @@ async function cvSeleccionado(file){
 
 async function descargarCV(){
   if(!actual?.cv_url)return;
-  // Extraer path del bucket
-  const url=actual.cv_url;
-  const marker='/object/public/cvs/';
-  const markerPrivate='/object/sign/cvs/';
-  let path=null;
-  if(url.includes('/object/public/cvs/'))path=decodeURIComponent(url.split('/object/public/cvs/')[1].split('?')[0]);
-  else if(url.includes('/object/sign/cvs/'))path=decodeURIComponent(url.split('/object/sign/cvs/')[1].split('?')[0]);
-  else path=url;
-  if(path){
-    const{data}=await db.storage.from('cvs').createSignedUrl(path,3600);
-    if(data?.signedUrl)window.open(data.signedUrl,'_blank');
-  }
+  window.open(actual.cv_url,'_blank');
 }
 
 async function eliminarCV(){
   if(!actual?.cv_url)return;
   if(!confirm('¿Eliminar el CV de este candidato?'))return;
-  // Extraer path del bucket desde la URL
   const url=actual.cv_url;
   const marker='/object/public/cvs/';
   const path=url.includes(marker)?url.split(marker)[1]:null;
@@ -1639,21 +1403,19 @@ async function guardar(){
   if(!actual)return;
   const nuevoEstado=document.getElementById('m-estado').value;
   const notas=document.getElementById('m-notas').value;
+  const vacId=document.getElementById('m-vacante-select').value||null;
   const anterior=actual.estado;
-  const{error}=await db.from('candidatos').update({estado:nuevoEstado,notas_internas:notas,updated_at:new Date().toISOString()}).eq('id',actual.id);
+  const{error}=await db.from('candidatos').update({
+    estado:nuevoEstado,
+    notas_internas:notas,
+    vacante_id:vacId,
+    updated_at:new Date().toISOString()
+  }).eq('id',actual.id);
   if(error){toast_msg('Error al guardar');return}
   if(nuevoEstado!==anterior){
     await db.from('historial_estados').insert({candidato_id:actual.id,estado_anterior:anterior,estado_nuevo:nuevoEstado,cambiado_por:'Lucía'});
-    // Si se contrata, cerrar la vacante automáticamente
-    if(['hired','contratado'].includes(nuevoEstado) && actual.vacante_id){
-      await db.from('vacantes').update({estado:'cerrada'}).eq('id',actual.vacante_id);
-      toast_msg('Candidato contratado — vacante cerrada automáticamente');
-    } else {
-      toast_msg('Cambios guardados');
-    }
-  } else {
-    toast_msg('Cambios guardados');
   }
+  toast_msg('Cambios guardados');
   closeModal('modal-cand');
   await loadCandidatos();
 }
@@ -1664,98 +1426,66 @@ async function crearCandidato(){
   const tel=document.getElementById('n-tel').value.trim();
   const vac=document.getElementById('n-vacante').value||null;
   if(!nombre||!email){toast_msg('Nombre y email son obligatorios');return}
-  const token=crypto.randomUUID();
-  const expires=new Date(Date.now() + 30*24*60*60*1000).toISOString();
-  const{data:nuevo,error}=await db.from('candidatos').insert({nombre,email,telefono:tel||null,vacante_id:vac,estado:'preseleccionado',magic_token:token,magic_token_expires_at:expires}).select().single();
+  const{error}=await db.from('candidatos').insert({nombre,email,telefono:tel||null,vacante_id:vac,estado:'preseleccionado',magic_token:crypto.randomUUID()});
   if(error){toast_msg(error.message.includes('unique')?'Este email ya existe':'Error al crear candidato');return}
-  
-  // Asignar prueba técnica si se seleccionó
-  const pruebaId=document.getElementById('n-prueba').value;
-  if(pruebaId&&nuevo?.id){
-    const prueba=pruebas.find(p=>p.id===pruebaId);
-    if(prueba){
-      await db.from('pruebas_tecnicas').insert({
-        candidato_id:nuevo.id,
-        enunciado_url:prueba.archivo_url,
-        instrucciones:prueba.descripcion,
-        biblioteca_prueba_id:pruebaId,
-        fecha_asignacion:new Date().toISOString()
-      });
-      await db.from('candidatos').update({estado:'prueba_asignada'}).eq('id',nuevo.id);
-    }
-  }
-
-  toast_msg('Candidato creado — copia su enlace de acceso desde la ficha');
+  toast_msg('Candidato creado');
   closeModal('modal-nuevo');
   ['n-nombre','n-email','n-tel'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('n-vacante').value='';
-  document.getElementById('n-prueba').value='';
   await loadCandidatos();
-}
-
-async function cambiarVacante(){
-  if(!actual)return;
-  const sel=document.getElementById('m-vacante-select');
-  if(!sel)return;
-  const vacanteId=sel.value||null;
-  const{error}=await db.from('candidatos').update({vacante_id:vacanteId,updated_at:new Date().toISOString()}).eq('id',actual.id);
-  if(!error){
-    actual.vacante_id=vacanteId;
-    toast_msg('Vacante actualizada');
-    await loadCandidatos();
-  }
-}
-
-function copiarEnlace(){
-  if(!actual?.magic_token){toast_msg('Este candidato no tiene enlace generado');return}
-  const enlace=`https://selection.livit.design/candidato/?token=${actual.magic_token}`;
-  navigator.clipboard.writeText(enlace).then(()=>{
-    toast_msg('Enlace copiado — pégalo en WhatsApp o email');
-  }).catch(()=>{
-    prompt('Copia este enlace:',enlace);
-  });
-}
-
-async function enviarInvitacion(candidatoId){
-  const id=candidatoId||actual?.id;
-  if(!id)return;
-  try{
-    const res=await fetch(`https://tdotlurmytvcdgmlmecc.supabase.co/functions/v1/enviar-invitacion`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkb3RsdXJteXR2Y2RnbWxtZWNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1MjAyOTMsImV4cCI6MjEwMjA5NjI5M30.GWMQV3Oz0X5oEe_-inidTAg1VBgHbQD6r23ckZXMCc4'},
-      body:JSON.stringify({candidato_id:id})
-    });
-    const data=await res.json();
-    if(data.success)toast_msg('Invitación enviada correctamente');
-    else toast_msg('Error al enviar la invitación: '+data.error);
-  }catch(e){
-    toast_msg('Error al enviar la invitación');
-  }
 }
 
 async function crearVacante(){
   const titulo=document.getElementById('v-titulo').value.trim();
+  const catId=document.getElementById('v-categoria').value;
   if(!titulo){toast_msg('El título es obligatorio');return}
-  const{error}=await db.from('vacantes').insert({titulo,equipo:document.getElementById('v-equipo').value.trim()||null,descripcion:document.getElementById('v-desc').value.trim()||null,perfil_disc_ideal:document.getElementById('v-disc').value.trim()||null});
+  if(!catId){toast_msg('La categoría es obligatoria');return}
+  const cat=categorias.find(c=>c.id===catId);
+  if(!cat){toast_msg('Categoría no válida');return}
+  // Generar código
+  const {data:existentes}=await db.from('vacantes').select('id').eq('categoria_id',catId);
+  const n=((existentes?.length||0)+1).toString().padStart(3,'0');
+  const codigo_vacante=`${cat.prefijo}-${n}`;
+  const catIdReal=catId.startsWith('cat-')?null:catId; // fallback no tiene ID real
+  const{error}=await db.from('vacantes').insert({
+    titulo,
+    categoria_id:catIdReal,
+    codigo_vacante,
+    descripcion:document.getElementById('v-desc').value.trim()||null,
+    perfil_disc_ideal:document.getElementById('v-disc').value.trim()||null
+  });
   if(error){toast_msg('Error al crear vacante');return}
-  toast_msg('Vacante creada');
+  toast_msg(`Vacante creada — ${codigo_vacante}`);
   closeModal('modal-vacante');
-  ['v-titulo','v-equipo','v-desc','v-disc'].forEach(i=>document.getElementById(i).value='');
+  ['v-titulo','v-desc','v-disc'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('v-categoria').value='';
+  document.getElementById('codigo-preview').textContent='';
   await loadVacantes();
 }
 
 function showView(v){
-  ['candidatos','vacantes','pruebas','archivo','contratados'].forEach(name=>{
+  ['candidatos','vacantes','pruebas','archivo','ajustes'].forEach(name=>{
     document.getElementById('view-'+name).style.display=v===name?'':'none';
   });
-  document.querySelectorAll('.nav-item').forEach((el,i)=>el.classList.toggle('active',(v==='candidatos'&&i===0)||(v==='vacantes'&&i===1)||(v==='pruebas'&&i===2)||(v==='archivo'&&i===3)||(v==='contratados'&&i===4)));
-  if(v==='contratados')loadContratados();
-  if(v==='archivo')loadArchivo();
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    const target=el.getAttribute('onclick')?.match(/showView\('(\w+)'\)/)?.[1];
+    el.classList.toggle('active',target===v);
+  });
+  if(v==='ajustes')renderCategorias();
 }
+
 function openNuevoCandidato(){document.getElementById('modal-nuevo').classList.add('open')}
-function openNuevaVacante(){document.getElementById('modal-vacante').classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='modal-cand')actual=null}
-['modal-cand','modal-nuevo','modal-vacante','modal-prueba-nueva'].forEach(id=>{
+function openNuevaVacante(){
+  poblarSelectCategorias();
+  document.getElementById('codigo-preview').textContent='';
+  document.getElementById('modal-vacante').classList.add('open');
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  if(id==='modal-cand')actual=null;
+  if(id==='modal-archivado')actualArchivado=null;
+}
+['modal-cand','modal-nuevo','modal-vacante','modal-prueba-nueva','modal-archivado'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal(id)});
 });
 
