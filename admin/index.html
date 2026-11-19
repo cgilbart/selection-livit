@@ -337,16 +337,24 @@ td{padding:13px 16px;font-size:12px}
 <body>
 
 <!-- LOGIN SCREEN -->
-<div id="login-screen" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);flex-direction:column;gap:24px;">
-  <div style="text-align:center;margin-bottom:8px;">
-    <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;color:var(--text);">Livit <span style="color:var(--muted);font-weight:400;">Selección</span></div>
+<div id="login-screen" style="display:flex;position:fixed;inset:0;z-index:500;align-items:center;justify-content:center;flex-direction:column;background:var(--bg);">
+  <div style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;">
+    <div class="bg-orb bg-orb1"></div>
+    <div class="bg-orb bg-orb2"></div>
   </div>
-  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px;width:360px;display:flex;flex-direction:column;gap:16px;">
-    <div style="font-size:15px;font-weight:600;color:var(--text);">Acceder</div>
-    <input id="login-email" type="email" placeholder="correo@livit.design" class="form-input" style="width:100%">
-    <input id="login-password" type="password" placeholder="Contraseña" class="form-input" style="width:100%" onkeydown="if(event.key==='Enter')doLogin()">
-    <div id="login-error" style="color:#f87171;font-size:12px;display:none;"></div>
-    <button onclick="doLogin()" class="btn-primary" style="width:100%;justify-content:center;">Entrar</button>
+  <div style="position:relative;z-index:1;text-align:center;margin-bottom:36px;">
+    <div style="font-family:var(--serif);font-size:40px;color:var(--cream);letter-spacing:-.3px;line-height:1;">Livit</div>
+    <div style="font-size:9px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:var(--pink);margin-top:8px;display:flex;align-items:center;justify-content:center;gap:7px;">
+      <span style="display:inline-block;width:18px;height:1px;background:rgba(230,0,126,.4)"></span>
+      Selección
+      <span style="display:inline-block;width:18px;height:1px;background:rgba(230,0,126,.4)"></span>
+    </div>
+  </div>
+  <div style="position:relative;z-index:1;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:32px 28px;width:340px;display:flex;flex-direction:column;gap:14px;box-shadow:0 32px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.09);">
+    <input id="login-email" type="email" placeholder="correo@livit.design" class="form-input" style="background:var(--surface2)">
+    <input id="login-password" type="password" placeholder="Contraseña" class="form-input" style="background:var(--surface2)" onkeydown="if(event.key==='Enter')doLogin()">
+    <div id="login-error" style="color:#f87171;font-size:11px;display:none;font-weight:600;margin-top:-4px;"></div>
+    <button onclick="doLogin()" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px 16px;margin-top:2px;">Entrar</button>
   </div>
 </div>
 
@@ -876,7 +884,6 @@ const db=createClient(SUPABASE_URL,SUPABASE_KEY,{global:{headers:{'apikey':SUPAB
 
 let candidatos=[],archivados=[],vacantes=[],pruebas=[],categorias=[],actual=null,actualArchivado=null,pruebaFileReady=null;
 
-// Fallback categorías si la tabla aún no existe
 const CATEGORIAS_FALLBACK=[
   {id:'cat-design',nombre:'Design',prefijo:'DESIGN'},
   {id:'cat-al',nombre:'AL',prefijo:'AL'},
@@ -949,12 +956,10 @@ function renderCategorias(){
 }
 
 function poblarSelectCategorias(){
-  // Select en modal nueva vacante
   const sel=document.getElementById('v-categoria');
   if(!sel)return;
   while(sel.options.length>1)sel.remove(1);
   categorias.forEach(c=>{sel.appendChild(new Option(c.nombre,c.id))});
-  // Filter en vista vacantes
   const fsel=document.getElementById('filter-cat-vacante');
   if(fsel){
     while(fsel.options.length>1)fsel.remove(1);
@@ -966,7 +971,6 @@ async function crearCategoria(){
   const nombre=document.getElementById('nueva-cat-nombre').value.trim();
   const prefijo=document.getElementById('nueva-cat-prefijo').value.trim().toUpperCase();
   if(!nombre||!prefijo){toast_msg('Nombre y prefijo son obligatorios');return}
-  // Si usamos fallback (tabla no existe), mostrar aviso
   if(categorias===CATEGORIAS_FALLBACK||categorias[0]?.id?.startsWith('cat-')){
     toast_msg('La tabla de categorías aún no existe en la base de datos');return;
   }
@@ -980,7 +984,6 @@ async function crearCategoria(){
 
 async function eliminarCategoria(id,nombre){
   if(categorias===CATEGORIAS_FALLBACK||id.startsWith('cat-')){toast_msg('No se puede modificar con la configuración actual');return}
-  // Verificar que no tiene vacantes
   const {data}=await db.from('vacantes').select('id').eq('categoria_id',id).limit(1);
   if(data&&data.length>0){toast_msg(`No se puede eliminar "${nombre}" — tiene vacantes asignadas`);return}
   if(!confirm(`¿Eliminar la categoría "${nombre}"?`))return;
@@ -995,7 +998,6 @@ async function actualizarCodigoPreview(){
   if(!catId){prev.textContent='';return}
   const cat=categorias.find(c=>c.id===catId);
   if(!cat){prev.textContent='';return}
-  // Contar vacantes existentes de esta categoría
   const {data}=await db.from('vacantes').select('id').eq('categoria_id',catId);
   const n=((data?.length||0)+1).toString().padStart(3,'0');
   prev.textContent=`Código asignado: ${cat.prefijo}-${n}`;
@@ -1087,7 +1089,6 @@ function poblarSelectVacantes(){
     vacantes.forEach(v=>{const o=new Option(v.titulo,v.id);sel.appendChild(o)});
     sel.value=current;
   });
-  // También poblar el select de vacante en modal candidato
   const msel=document.getElementById('m-vacante-select');
   if(msel){
     const cur=msel.value;
@@ -1261,14 +1262,11 @@ async function abrirCandidato(id){
   document.getElementById('m-estado').value=c.estado;
   document.getElementById('m-notas').value=c.notas_internas||'';
 
-  // Vacante select
   poblarSelectVacantes();
   document.getElementById('m-vacante-select').value=c.vacante_id||'';
 
-  // CV
   renderCV(c);
 
-  // DISC
   const{data:disc}=await db.from('resultados_disc').select('*').eq('candidato_id',id).maybeSingle();
   if(disc){
     document.getElementById('m-disc-perfil').innerHTML=`<svg width="10" height="10" viewBox="0 0 24 24" fill="var(--pink)"><circle cx="12" cy="12" r="10"/></svg> Perfil ${disc.perfil_principal||''}${disc.perfil_secundario?'('+disc.perfil_secundario+')':''} — ${disc.tipo_perfil||''}`;
@@ -1283,7 +1281,6 @@ async function abrirCandidato(id){
     document.getElementById('m-disc-bars').innerHTML='';
   }
 
-  // Prueba
   const{data:prueba}=await db.from('pruebas_tecnicas').select('*,biblioteca_pruebas(titulo)').eq('candidato_id',id).maybeSingle();
   const elAsignada=document.getElementById('m-prueba-asignada');
   const elSelector=document.getElementById('m-prueba-selector');
@@ -1304,7 +1301,6 @@ async function abrirCandidato(id){
     poblarSelectPruebas();
   }
 
-  // Historial
   const{data:hist}=await db.from('historial_estados').select('*').eq('candidato_id',id).order('created_at',{ascending:false});
   document.getElementById('m-historial').innerHTML=hist&&hist.length?hist.map(h=>`
     <div class="historial-item">
@@ -1460,11 +1456,10 @@ async function crearVacante(){
   if(!catId){toast_msg('La categoría es obligatoria');return}
   const cat=categorias.find(c=>c.id===catId);
   if(!cat){toast_msg('Categoría no válida');return}
-  // Generar código
   const {data:existentes}=await db.from('vacantes').select('id').eq('categoria_id',catId);
   const n=((existentes?.length||0)+1).toString().padStart(3,'0');
   const codigo_vacante=`${cat.prefijo}-${n}`;
-  const catIdReal=catId.startsWith('cat-')?null:catId; // fallback no tiene ID real
+  const catIdReal=catId.startsWith('cat-')?null:catId;
   const{error}=await db.from('vacantes').insert({
     titulo,
     categoria_id:catIdReal,
