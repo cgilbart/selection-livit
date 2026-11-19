@@ -808,10 +808,10 @@ td{padding:13px 16px;font-size:12px}
 <div class="modal-overlay" id="modal-vacante">
   <div class="modal-panel">
     <div class="modal-header">
-      <div class="modal-name">Nueva vacante</div>
+      <div class="modal-name" id="modal-vacante-title">Nueva vacante</div>
       <button class="modal-close" onclick="closeModal('modal-vacante')">✕</button>
     </div>
-    <div class="form-field">
+    <div class="form-field" id="v-categoria-field">
       <label class="form-lbl">Categoría *</label>
       <select id="v-categoria" class="modal-select" style="margin-top:0" onchange="actualizarCodigoPreview()">
         <option value="">Selecciona una categoría...</option>
@@ -822,6 +822,13 @@ td{padding:13px 16px;font-size:12px}
       <label class="form-lbl">Título del puesto *</label>
       <input type="text" id="v-titulo" class="form-input" placeholder="Product Designer">
     </div>
+    <div class="form-field" id="v-estado-field" style="display:none">
+      <label class="form-lbl">Estado</label>
+      <select id="v-estado" class="modal-select" style="margin-top:0">
+        <option value="abierta">Abierta</option>
+        <option value="cerrada">Cerrada</option>
+      </select>
+    </div>
     <div class="form-field">
       <label class="form-lbl">Descripción</label>
       <textarea id="v-desc" class="modal-textarea" placeholder="Descripción del puesto y responsabilidades..."></textarea>
@@ -830,7 +837,7 @@ td{padding:13px 16px;font-size:12px}
       <label class="form-lbl">Perfil DISC ideal</label>
       <textarea id="v-disc" class="modal-textarea" style="min-height:60px" placeholder="Ej: buscamos perfil SC o IC, con C por encima de 60..."></textarea>
     </div>
-    <button class="save-btn" onclick="crearVacante()">Crear vacante</button>
+    <button class="save-btn" id="v-save-btn" onclick="submitVacante()">Crear vacante</button>
   </div>
 </div>
 
@@ -1055,7 +1062,7 @@ function renderVacantes(list){
   tbody.innerHTML=list.map(v=>{
     const n=[...candidatos,...archivados].filter(c=>c.vacante_id===v.id).length;
     const cat=categorias.find(c=>c.id===v.categoria_id);
-    return `<tr>
+    return `<tr style="cursor:pointer" onclick="editarVacante('${v.id}')">
       <td><div class="td-name">${v.titulo}</div></td>
       <td><span class="vac-tag">${v.codigo_vacante||'—'}</span></td>
       <td>${cat?`<span class="categoria-prefijo">${cat.prefijo}</span> <span style="font-size:11px;color:var(--muted)">${cat.nombre}</span>`:'<span style="color:var(--muted2);font-size:11px">—</span>'}</td>
@@ -1396,7 +1403,19 @@ async function cvSeleccionado(file){
 
 async function descargarCV(){
   if(!actual?.cv_url)return;
-  window.open(actual.cv_url,'_blank');
+  try{
+    const res=await fetch(actual.cv_url,{method:'HEAD'});
+    if(!res.ok){
+      await db.from('candidatos').update({cv_url:null,updated_at:new Date().toISOString()}).eq('id',actual.id);
+      actual.cv_url=null;
+      renderCV(actual);
+      toast_msg('El archivo no existe, por favor vuelve a subirlo');
+      return;
+    }
+    window.open(actual.cv_url,'_blank');
+  }catch(e){
+    window.open(actual.cv_url,'_blank');
+  }
 }
 
 async function eliminarCV(){
@@ -1470,6 +1489,7 @@ async function crearVacante(){
   if(error){toast_msg('Error al crear vacante');return}
   toast_msg(`Vacante creada — ${codigo_vacante}`);
   closeModal('modal-vacante');
+  vacanteEditandoId=null;
   ['v-titulo','v-desc','v-disc'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('v-categoria').value='';
   document.getElementById('codigo-preview').textContent='';
@@ -1488,10 +1508,56 @@ function showView(v){
 }
 
 function openNuevoCandidato(){document.getElementById('modal-nuevo').classList.add('open')}
+let vacanteEditandoId=null;
+
 function openNuevaVacante(){
+  vacanteEditandoId=null;
+  document.getElementById('modal-vacante-title').textContent='Nueva vacante';
+  document.getElementById('v-save-btn').textContent='Crear vacante';
+  document.getElementById('v-estado-field').style.display='none';
+  document.getElementById('v-categoria-field').style.display='';
   poblarSelectCategorias();
   document.getElementById('codigo-preview').textContent='';
+  ['v-titulo','v-desc','v-disc'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('v-categoria').value='';
   document.getElementById('modal-vacante').classList.add('open');
+}
+
+function editarVacante(id){
+  const v=vacantes.find(x=>x.id===id);
+  if(!v)return;
+  vacanteEditandoId=id;
+  document.getElementById('modal-vacante-title').textContent='Editar vacante';
+  document.getElementById('v-save-btn').textContent='Guardar cambios';
+  document.getElementById('v-estado-field').style.display='';
+  document.getElementById('v-categoria-field').style.display='none';
+  document.getElementById('v-titulo').value=v.titulo||'';
+  document.getElementById('v-desc').value=v.descripcion||'';
+  document.getElementById('v-disc').value=v.perfil_disc_ideal||'';
+  document.getElementById('v-estado').value=v.estado||'abierta';
+  document.getElementById('codigo-preview').textContent=v.codigo_vacante?`Código: ${v.codigo_vacante}`:'';
+  document.getElementById('modal-vacante').classList.add('open');
+}
+
+async function submitVacante(){
+  if(vacanteEditandoId) await guardarEdicionVacante();
+  else await crearVacante();
+}
+
+async function guardarEdicionVacante(){
+  const titulo=document.getElementById('v-titulo').value.trim();
+  if(!titulo){toast_msg('El título es obligatorio');return}
+  const{error}=await db.from('vacantes').update({
+    titulo,
+    descripcion:document.getElementById('v-desc').value.trim()||null,
+    perfil_disc_ideal:document.getElementById('v-disc').value.trim()||null,
+    estado:document.getElementById('v-estado').value
+  }).eq('id',vacanteEditandoId);
+  if(error){toast_msg('Error al guardar');return}
+  toast_msg('Vacante actualizada');
+  closeModal('modal-vacante');
+  vacanteEditandoId=null;
+  await loadVacantes();
 }
 function closeModal(id){
   document.getElementById(id).classList.remove('open');
