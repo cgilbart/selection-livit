@@ -162,6 +162,8 @@ td{padding:13px 16px;font-size:12px}
 .b-oferta .badge-dot{background:var(--green);box-shadow:0 0 6px rgba(74,200,130,.6)}
 .b-descartado{background:rgba(255,82,82,.08);color:var(--red);border:1px solid rgba(255,82,82,.2)}
 .b-descartado .badge-dot{background:var(--red)}
+.b-apto_no_incorporado{background:rgba(32,201,201,.1);color:#20C9C9;border:1px solid rgba(32,201,201,.2)}
+.b-apto_no_incorporado .badge-dot{background:#20C9C9}
 
 /* DISC mini */
 .disc-mini{display:flex;gap:4px;align-items:center}
@@ -470,6 +472,7 @@ td{padding:13px 16px;font-size:12px}
           <option value="prueba_entregada">Prueba entregada</option>
           <option value="entrevista_tecnica">Entrevista técnica</option>
           <option value="oferta">Oferta</option>
+          <option value="apto_no_incorporado">Apto, no incorporado</option>
         </select>
         <select class="filter-select" id="filter-vacante" onchange="filtrar()">
           <option value="">Todas las vacantes</option>
@@ -568,6 +571,15 @@ td{padding:13px 16px;font-size:12px}
       <div class="archivo-banner">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         Los candidatos archivados no aparecen en la lista principal. Puedes recuperarlos y asignarlos a cualquier vacante.
+      </div>
+      <div class="filters-bar" style="margin-bottom:16px">
+        <div class="search-wrap">
+          <svg class="search-icon" width="13" height="13" fill="none" stroke="#F8EEE7" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" type="text" placeholder="Buscar por nombre o email..." oninput="filtrarArchivo()" id="search-archivo">
+        </div>
+        <select class="filter-select" id="filter-archivo-vacante" onchange="filtrarArchivo()">
+          <option value="">Todas las vacantes</option>
+        </select>
       </div>
       <div class="table-wrap">
         <table>
@@ -712,6 +724,7 @@ td{padding:13px 16px;font-size:12px}
         <option value="prueba_entregada">Prueba entregada</option>
         <option value="entrevista_tecnica">Entrevista técnica</option>
         <option value="oferta">Oferta</option>
+        <option value="apto_no_incorporado">Apto, no incorporado</option>
         <option value="descartado">Descartado</option>
       </select>
     </div>
@@ -818,6 +831,14 @@ td{padding:13px 16px;font-size:12px}
       </select>
       <div class="codigo-preview" id="codigo-preview"></div>
     </div>
+    <div class="form-field" id="v-codigo-field" style="display:none">
+      <label class="form-lbl">Categoría</label>
+      <select id="v-categoria-edit" class="modal-select" style="margin-top:0;margin-bottom:10px">
+        <option value="">Sin categoría</option>
+      </select>
+      <label class="form-lbl">Código de vacante</label>
+      <input type="text" id="v-codigo" class="form-input" placeholder="Ej: DESIGN-001" style="margin-top:0">
+    </div>
     <div class="form-field">
       <label class="form-lbl">Título del puesto *</label>
       <input type="text" id="v-titulo" class="form-input" placeholder="Product Designer">
@@ -903,7 +924,7 @@ const labels={
   preseleccionado:'Preseleccionado',perfil_incompleto:'Perfil incompleto',
   tests_completados:'Tests completados',prueba_asignada:'Prueba asignada',
   prueba_entregada:'Prueba entregada',entrevista_tecnica:'Entrevista técnica',
-  oferta:'Oferta',descartado:'Descartado'
+  oferta:'Oferta',apto_no_incorporado:'Apto, no incorporado',descartado:'Descartado'
 };
 
 async function init(){
@@ -1041,6 +1062,15 @@ function renderCandidatos(list){
     </tr>`).join('');
 }
 
+function filtrarArchivo(){
+  const q=(document.getElementById('search-archivo')?.value||'').toLowerCase();
+  const vac=document.getElementById('filter-archivo-vacante')?.value||'';
+  let list=archivados;
+  if(q) list=list.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.email||'').toLowerCase().includes(q));
+  if(vac) list=list.filter(c=>c.vacante_id===vac);
+  renderArchivo(list);
+}
+
 function renderArchivo(list){
   const tbody=document.getElementById('tabla-archivo');
   if(!list.length){
@@ -1091,7 +1121,7 @@ function filtrarVacantes(){
 }
 
 function poblarSelectVacantes(){
-  ['filter-vacante','n-vacante','ma-vacante-recuperar'].forEach(id=>{
+  ['filter-vacante','n-vacante','ma-vacante-recuperar','filter-archivo-vacante'].forEach(id=>{
     const sel=document.getElementById(id);
     if(!sel)return;
     const current=sel.value;
@@ -1518,6 +1548,7 @@ function openNuevaVacante(){
   document.getElementById('v-save-btn').textContent='Crear vacante';
   document.getElementById('v-estado-field').style.display='none';
   document.getElementById('v-categoria-field').style.display='';
+  document.getElementById('v-codigo-field').style.display='none';
   poblarSelectCategorias();
   document.getElementById('codigo-preview').textContent='';
   ['v-titulo','v-desc','v-disc'].forEach(i=>document.getElementById(i).value='');
@@ -1533,11 +1564,17 @@ function editarVacante(id){
   document.getElementById('v-save-btn').textContent='Guardar cambios';
   document.getElementById('v-estado-field').style.display='';
   document.getElementById('v-categoria-field').style.display='none';
+  document.getElementById('v-codigo-field').style.display='';
+  // Populate category edit select
+  const catEdit=document.getElementById('v-categoria-edit');
+  while(catEdit.options.length>1)catEdit.remove(1);
+  categorias.forEach(c=>{catEdit.appendChild(new Option(c.nombre,c.id))});
+  catEdit.value=v.categoria_id||'';
+  document.getElementById('v-codigo').value=v.codigo_vacante||'';
   document.getElementById('v-titulo').value=v.titulo||'';
   document.getElementById('v-desc').value=v.descripcion||'';
   document.getElementById('v-disc').value=v.perfil_disc_ideal||'';
   document.getElementById('v-estado').value=v.estado||'abierta';
-  document.getElementById('codigo-preview').textContent=v.codigo_vacante?`Código: ${v.codigo_vacante}`:'';
   document.getElementById('modal-vacante').classList.add('open');
 }
 
@@ -1549,8 +1586,12 @@ async function submitVacante(){
 async function guardarEdicionVacante(){
   const titulo=document.getElementById('v-titulo').value.trim();
   if(!titulo){toast_msg('El título es obligatorio');return}
+  const catEdit=document.getElementById('v-categoria-edit').value||null;
+  const codigo=document.getElementById('v-codigo').value.trim()||null;
   const{error}=await db.from('vacantes').update({
     titulo,
+    categoria_id:catEdit,
+    codigo_vacante:codigo,
     descripcion:document.getElementById('v-desc').value.trim()||null,
     perfil_disc_ideal:document.getElementById('v-disc').value.trim()||null,
     estado:document.getElementById('v-estado').value
