@@ -624,6 +624,11 @@ td{padding:13px 16px;font-size:12px}
         <div id="lista-estados">
           <div class="loading" style="padding:20px">Cargando estados...</div>
         </div>
+        <div class="add-cat-form" style="margin-top:16px">
+          <input type="text" id="nuevo-estado-codigo" class="form-input" placeholder="Código interno (ej. entrevista_rrhh)" style="flex:1.5;text-transform:lowercase" oninput="this.value=this.value.toLowerCase().replace(/\s+/g,'_')">
+          <input type="text" id="nuevo-estado-etiqueta" class="form-input" placeholder="Etiqueta visible (ej. Entrevista RRHH)" style="flex:2">
+          <button class="btn btn-primary" onclick="crearEstado()" style="flex-shrink:0">Añadir</button>
+        </div>
       </div>
 
       <div class="ajustes-section">
@@ -1089,6 +1094,22 @@ async function guardarEtiqueta(codigo){
   labels[codigo]=etiqueta;
   estadosData=estadosData.map(e=>e.codigo===codigo?{...e,etiqueta}:e);
   toast_msg('Etiqueta actualizada');
+}
+
+async function crearEstado(){
+  const codigo=document.getElementById('nuevo-estado-codigo').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const etiqueta=document.getElementById('nuevo-estado-etiqueta').value.trim();
+  if(!codigo||!etiqueta){toast_msg('Código y etiqueta son obligatorios');return}
+  if(estadosData.find(e=>e.codigo===codigo)){toast_msg('Ese código ya existe');return}
+  const orden=estadosData.length?Math.max(...estadosData.map(e=>e.orden||0))+1:0;
+  const{error}=await db.from('estados_proceso').insert({codigo,etiqueta,orden});
+  if(error){toast_msg(error.message.includes('unique')?'Ese código ya existe':'Error al crear estado');return}
+  labels[codigo]=etiqueta;
+  estadosData.push({codigo,etiqueta,orden});
+  document.getElementById('nuevo-estado-codigo').value='';
+  document.getElementById('nuevo-estado-etiqueta').value='';
+  renderEstados();
+  toast_msg('Estado creado');
 }
 
 /* ── ELIMINAR CANDIDATO ──────────────────────────────── */
