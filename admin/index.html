@@ -226,11 +226,24 @@ td{padding:13px 16px;font-size:12px}
   cursor:pointer;margin-top:8px;letter-spacing:.3px;transition:all .15s;
 }
 .reinvitar-btn:hover{background:rgba(255,255,255,.08);color:var(--cream)}
+.danger-btn{
+  width:100%;padding:9px;
+  background:rgba(255,82,82,.07);color:var(--red);
+  border:1px solid rgba(255,82,82,.18);border-radius:10px;
+  font-family:var(--font);font-size:11px;font-weight:700;
+  cursor:pointer;margin-top:8px;letter-spacing:.3px;transition:all .15s;
+}
+.danger-btn:hover{background:rgba(255,82,82,.16);border-color:rgba(255,82,82,.35)}
 
 /* HISTORIAL */
 .historial-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--muted)}
 .historial-item:last-child{border-bottom:none}
 .historial-fecha{color:var(--muted2);font-size:10px;margin-top:2px;font-weight:500}
+.historial-nota{font-size:10px;color:var(--muted2);font-weight:500;margin-top:2px;font-style:italic}
+
+/* AJUSTES ESTADOS */
+.estado-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.estado-row:last-child{border-bottom:none}
 
 /* EMPTY / LOADING */
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted2)}
@@ -580,6 +593,9 @@ td{padding:13px 16px;font-size:12px}
         <select class="filter-select" id="filter-archivo-vacante" onchange="filtrarArchivo()">
           <option value="">Todas las vacantes</option>
         </select>
+        <select class="filter-select" id="filter-archivo-categoria" onchange="filtrarArchivo()">
+          <option value="">Todas las categorías</option>
+        </select>
       </div>
       <div class="table-wrap">
         <table>
@@ -599,6 +615,14 @@ td{padding:13px 16px;font-size:12px}
         <div>
           <div class="page-title">Ajustes</div>
           <div class="page-subtitle">Configuración de la plataforma</div>
+        </div>
+      </div>
+
+      <div class="ajustes-section">
+        <div class="ajustes-title">Estados del proceso</div>
+        <div class="ajustes-sub">Personaliza los nombres de cada etapa. El código interno no cambia — solo la etiqueta visible.</div>
+        <div id="lista-estados">
+          <div class="loading" style="padding:20px">Cargando estados...</div>
         </div>
       </div>
 
@@ -743,6 +767,7 @@ td{padding:13px 16px;font-size:12px}
 
     <button class="save-btn" onclick="guardar()">Guardar cambios</button>
     <button class="reinvitar-btn" onclick="toast_msg('Función disponible próximamente')">📧 Reenviar invitación</button>
+    <button class="danger-btn" onclick="eliminarCandidato(actual?.id,actual?.nombre)">🗑 Eliminar candidato</button>
 
     <hr class="divider">
 
@@ -785,6 +810,7 @@ td{padding:13px 16px;font-size:12px}
       </select>
     </div>
     <button class="save-btn" onclick="recuperarCandidato()">↩ Recuperar candidato</button>
+    <button class="danger-btn" onclick="eliminarCandidato(actualArchivado?.id,actualArchivado?.nombre,'archivado')">🗑 Eliminar candidato</button>
   </div>
 </div>
 
@@ -910,7 +936,7 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const {createClient}=supabase;
 const db=createClient(SUPABASE_URL,SUPABASE_KEY,{global:{headers:{'apikey':SUPABASE_KEY}}});
 
-let candidatos=[],archivados=[],vacantes=[],pruebas=[],categorias=[],actual=null,actualArchivado=null,pruebaFileReady=null;
+let candidatos=[],archivados=[],vacantes=[],pruebas=[],categorias=[],estadosData=[],actual=null,actualArchivado=null,pruebaFileReady=null;
 
 const CATEGORIAS_FALLBACK=[
   {id:'cat-design',nombre:'Design',prefijo:'DESIGN'},
@@ -928,7 +954,7 @@ const labels={
 };
 
 async function init(){
-  await Promise.all([loadCategorias(),loadPruebas()]);
+  await Promise.all([loadCategorias(),loadPruebas(),loadEstados()]);
   await loadVacantes();
   await loadCandidatos();
 }
@@ -996,6 +1022,11 @@ function poblarSelectCategorias(){
     while(fsel.options.length>1)fsel.remove(1);
     categorias.forEach(c=>{fsel.appendChild(new Option(c.nombre,c.id))});
   }
+  const asel=document.getElementById('filter-archivo-categoria');
+  if(asel){
+    while(asel.options.length>1)asel.remove(1);
+    categorias.forEach(c=>{asel.appendChild(new Option(c.nombre,c.id))});
+  }
 }
 
 async function crearCategoria(){
@@ -1021,6 +1052,69 @@ async function eliminarCategoria(id,nombre){
   await db.from('categorias_vacantes').delete().eq('id',id);
   toast_msg('Categoría eliminada');
   await loadCategorias();
+}
+
+/* ── ESTADOS DEL PROCESO ─────────────────────────────── */
+async function loadEstados(){
+  try{
+    const{data,error}=await db.from('estados_proceso').select('*').order('orden');
+    if(!error&&data&&data.length){
+      estadosData=data;
+      data.forEach(e=>{ labels[e.codigo]=e.etiqueta; });
+    }
+  }catch(e){}
+}
+
+function renderEstados(){
+  const el=document.getElementById('lista-estados');
+  if(!el)return;
+  if(!estadosData.length){
+    el.innerHTML='<div style="color:var(--muted2);font-size:12px;padding:12px 0">Cargando…</div>';
+    return;
+  }
+  el.innerHTML=estadosData.map(e=>`
+    <div class="estado-row">
+      <span style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:.5px;min-width:130px">${e.codigo}</span>
+      <input class="form-input" value="${e.etiqueta}" id="est-input-${e.codigo}" style="flex:1;font-size:12px;padding:6px 10px">
+      <button class="btn btn-primary" style="font-size:10px;padding:5px 12px;flex-shrink:0" onclick="guardarEtiqueta('${e.codigo}')">Guardar</button>
+    </div>`).join('');
+}
+
+async function guardarEtiqueta(codigo){
+  const inp=document.getElementById('est-input-'+codigo);
+  const etiqueta=inp?.value?.trim();
+  if(!etiqueta){toast_msg('La etiqueta no puede estar vacía');return}
+  const{error}=await db.from('estados_proceso').update({etiqueta}).eq('codigo',codigo);
+  if(error){toast_msg('Error al guardar');return}
+  labels[codigo]=etiqueta;
+  estadosData=estadosData.map(e=>e.codigo===codigo?{...e,etiqueta}:e);
+  toast_msg('Etiqueta actualizada');
+}
+
+/* ── ELIMINAR CANDIDATO ──────────────────────────────── */
+async function eliminarCandidato(id,nombre,source){
+  if(!id)return;
+  if(!confirm(`¿Eliminar a ${nombre||'este candidato'} de forma permanente? Se borrarán todos sus datos, tests y archivos.`))return;
+  // Cascade delete related records
+  await db.from('respuestas_personalidad').delete().eq('candidato_id',id);
+  await db.from('resultados_disc').delete().eq('candidato_id',id);
+  await db.from('historial_estados').delete().eq('candidato_id',id);
+  await db.from('pruebas_tecnicas').delete().eq('candidato_id',id);
+  // Delete CV from storage (best effort)
+  const cand=(source==='archivado'?archivados:candidatos).find(c=>c.id===id);
+  if(cand?.cv_url){
+    try{
+      const parts=cand.cv_url.split('/cvs/');
+      if(parts[1])await db.storage.from('cvs').remove([decodeURIComponent(parts[1].split('?')[0])]);
+    }catch(e){}
+  }
+  // Delete candidato row
+  const{error}=await db.from('candidatos').delete().eq('id',id);
+  if(error){toast_msg('Error al eliminar el candidato');return}
+  toast_msg('Candidato eliminado');
+  if(source==='archivado'){closeModal('modal-archivado');actualArchivado=null;}
+  else{closeModal('modal-cand');actual=null;}
+  await loadCandidatos();
 }
 
 async function actualizarCodigoPreview(){
@@ -1065,9 +1159,14 @@ function renderCandidatos(list){
 function filtrarArchivo(){
   const q=(document.getElementById('search-archivo')?.value||'').toLowerCase();
   const vac=document.getElementById('filter-archivo-vacante')?.value||'';
+  const cat=document.getElementById('filter-archivo-categoria')?.value||'';
   let list=archivados;
   if(q) list=list.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.email||'').toLowerCase().includes(q));
   if(vac) list=list.filter(c=>c.vacante_id===vac);
+  if(cat){
+    const vacsEnCat=vacantes.filter(v=>v.categoria_id===cat).map(v=>v.id);
+    list=list.filter(c=>vacsEnCat.includes(c.vacante_id));
+  }
   renderArchivo(list);
 }
 
@@ -1346,6 +1445,7 @@ async function abrirCandidato(id){
     <div class="historial-item">
       ${h.estado_anterior?`${labels[h.estado_anterior]||h.estado_anterior} → `:''}${labels[h.estado_nuevo]||h.estado_nuevo}
       <div class="historial-fecha">${fmt(h.created_at)}</div>
+      ${h.notas?`<div class="historial-nota">${h.notas}</div>`:''}
     </div>`).join(''):'<span style="color:var(--muted2);font-size:11px;font-weight:600">Sin cambios registrados</span>';
 
   document.getElementById('modal-cand').classList.add('open');
@@ -1367,6 +1467,16 @@ function abrirArchivado(id){
 async function recuperarCandidato(){
   if(!actualArchivado)return;
   const vacId=document.getElementById('ma-vacante-recuperar').value||null;
+  // Build nota: si tenía vacante anterior, registrar el proceso previo
+  const vacAnterior=actualArchivado.vacante_id
+    ? vacantes.find(v=>v.id===actualArchivado.vacante_id)
+    : null;
+  const vacNueva=vacId ? vacantes.find(v=>v.id===vacId) : null;
+  let notas=null;
+  if(vacAnterior){
+    notas=`Proceso previo: ${vacAnterior.titulo}`;
+    if(vacNueva&&vacNueva.id!==vacAnterior.id) notas+=` → reactivado para ${vacNueva.titulo}`;
+  }
   const {error}=await db.from('candidatos').update({
     estado:'preseleccionado',
     vacante_id:vacId,
@@ -1377,7 +1487,8 @@ async function recuperarCandidato(){
     candidato_id:actualArchivado.id,
     estado_anterior:'descartado',
     estado_nuevo:'preseleccionado',
-    cambiado_por:'Lucía'
+    cambiado_por:'Lucía',
+    ...(notas&&{notas})
   });
   toast_msg('Candidato recuperado y reactivado');
   closeModal('modal-archivado');
@@ -1536,7 +1647,7 @@ function showView(v){
     const target=el.getAttribute('onclick')?.match(/showView\('(\w+)'\)/)?.[1];
     el.classList.toggle('active',target===v);
   });
-  if(v==='ajustes')renderCategorias();
+  if(v==='ajustes'){renderCategorias();renderEstados();}
 }
 
 function openNuevoCandidato(){document.getElementById('modal-nuevo').classList.add('open')}
